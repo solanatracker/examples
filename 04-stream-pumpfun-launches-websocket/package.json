@@ -1,0 +1,16 @@
+{
+  "name": "example-stream-pumpfun-launches-websocket",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx --import ./src/preload.ts src/index.ts"
+  },
+  "dependencies": {
+    "@solana-tracker/data-api": "^0.3.1",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "example-raydium-stream-and-parse-amm-transactions",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@triton-one/yellowstone-grpc": "^5.0.8",
+    "@coral-xyz/anchor": "^0.30.1",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.4.0"
+  }
+}
