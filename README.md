@@ -16,6 +16,12 @@ All examples live in one repository: [github.com/solanatracker/examples](https:/
 | 08-pumpfun-stream-new-minted-tokens | [Stream Pump.fun mints (gRPC)](https://github.com/solanatracker/examples/tree/main/08-pumpfun-stream-new-minted-tokens) | [Tutorial](https://www.solanatracker.io/resources/pumpfun-stream-new-minted-tokens) |
 | 09-raydium-stream-and-parse-amm-transactions | [Parse Raydium AMM swaps (gRPC)](https://github.com/solanatracker/examples/tree/main/09-raydium-stream-and-parse-amm-transactions) | [Tutorial](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
 | 10-meteora-dlmm-transaction-parsing | [Parse Meteora DLMM swaps (gRPC)](https://github.com/solanatracker/examples/tree/main/10-meteora-dlmm-transaction-parsing) | [Tutorial](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
+| 11-solana-token-ohlcv-chart-api | [OHLCV candlestick chart data](https://github.com/solanatracker/examples/tree/main/11-solana-token-ohlcv-chart-api) | [Tutorial](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
+| 12-check-solana-token-rug-risk-api | [Token rug check and risk score](https://github.com/solanatracker/examples/tree/main/12-check-solana-token-rug-risk-api) | [Tutorial](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
+| 13-pumpfun-first-buyers-sniper-api | [Pump.fun first buyers and snipers](https://github.com/solanatracker/examples/tree/main/13-pumpfun-first-buyers-sniper-api) | [Tutorial](https://www.solanatracker.io/resources/pumpfun-first-buyers-sniper-api) |
+| 14-solana-token-search-screener-api | [Token screener with Search API](https://github.com/solanatracker/examples/tree/main/14-solana-token-search-screener-api) | [Tutorial](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
+| 15-stream-solana-trades-websocket | [Live token trades (WebSocket)](https://github.com/solanatracker/examples/tree/main/15-stream-solana-trades-websocket) | [Tutorial](https://www.solanatracker.io/resources/stream-solana-trades-websocket) |
+| 16-solana-pnl-leaderboard-api | [PnL v2 trader leaderboard](https://github.com/solanatracker/examples/tree/main/16-solana-pnl-leaderboard-api) | [Tutorial](https://www.solanatracker.io/resources/solana-pnl-leaderboard-api) |
 
 ## Quick start
 
