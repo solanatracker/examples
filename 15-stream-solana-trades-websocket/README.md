@@ -30,4 +30,15 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=15-stream-solana-trades-websocket%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+This is a **trade tape**, not a bare `subscribe` call:
+
+1. REST backfill — token context + last trades before going live
+2. Formatted tape output (side, USD, wallet, signature)
+3. Running buy/sell + volume stats every 30s
+4. Auto-reconnect on disconnect
+
+Contrast with [price WebSocket](/resources/realtime-solana-price-websocket) which only streams aggregated quotes.
+
 

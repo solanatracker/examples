@@ -1,38 +1,44 @@
-import { Client } from "@solana-tracker/data-api";
+import { optionalEnv } from "./env.js";
+import { usd } from "./format.js";
+import { passRiskGate } from "./risk-gate.js";
+import { resolveTokenMint } from "./resolve-token.js";
+import { createDataApiClient } from "./client.js";
 
-if (!(process.env.ST_API_KEY || process.env.SOLANA_TRACKER_API_KEY)) {
-  console.error("Set ST_API_KEY in .env");
-  process.exit(1);
-}
+const client = createDataApiClient();
+const minScore = Number(optionalEnv("MIN_RISK_SCORE", "6"));
 
-const client = new Client({
-  apiKey: process.env.ST_API_KEY || process.env.SOLANA_TRACKER_API_KEY,
-  baseUrl: process.env.DATA_API_BASE_URL || 'https://data.solanatracker.io',
-});
+console.log("=== Rug / risk check ===\n");
 
-const mint = process.env.TOKEN_MINT || "So11111111111111111111111111111111111111112";
+const mint = await resolveTokenMint(client);
+
 const data = await client.getTokenInfo(mint);
-const risk = data.risk;
+const { risk } = data;
 const pool = data.pools?.[0];
+const symbol = data.token?.symbol || mint.slice(0, 8);
 
-console.log(data.token?.symbol || mint.slice(0, 8), "— risk score", risk?.score ?? "n/a", "/10");
-if (risk?.rugged) console.log("Status: RUGGED (liquidity removed)");
-if (pool) console.log("Liquidity USD:", pool.liquidity?.usd?.toFixed(0), "| MC USD:", pool.marketCap?.usd?.toFixed(0));
-
-const signals = [
-  ["Snipers", risk?.snipers?.totalPercentage, risk?.snipers?.count],
-  ["Insiders", risk?.insiders?.totalPercentage, risk?.insiders?.count],
-  ["Bundlers", risk?.bundlers?.totalPercentage, risk?.bundlers?.count],
-  ["Dev holding", risk?.dev?.percentage, null],
-];
-for (const [label, pct, count] of signals) {
-  if (pct == null) continue;
-  const extra = count != null ? ` (${count} wallets)` : "";
-  console.log(`  ${label}: ${Number(pct).toFixed(2)}%${extra}`);
+console.log(`${symbol} (${mint.slice(0, 8)}…)`);
+console.log(`Risk score: ${risk?.score ?? "n/a"}/10${risk?.rugged ? "  ⚠ RUGGED" : ""}`);
+if (pool) {
+  console.log(`Price ${usd(pool.price?.usd)}  Liq ${usd(pool.liquidity?.usd)}  MC ${usd(pool.marketCap?.usd)}`);
 }
+
+const rows: Array<[string, string]> = [
+  ["Snipers", risk?.snipers?.totalPercentage != null ? `${risk.snipers.totalPercentage.toFixed(2)}% (${risk.snipers.count ?? "?"} wallets)` : "—"],
+  ["Insiders", risk?.insiders?.totalPercentage != null ? `${risk.insiders.totalPercentage.toFixed(2)}% (${risk.insiders.count ?? "?"} wallets)` : "—"],
+  ["Bundlers", risk?.bundlers?.totalPercentage != null ? `${risk.bundlers.totalPercentage.toFixed(2)}% (${risk.bundlers.count ?? "?"} wallets)` : "—"],
+  ["Dev holding", risk?.dev?.percentage != null ? `${risk.dev.percentage.toFixed(2)}%` : "—"],
+];
+
+console.log("\nHolder risk:");
+for (const [label, value] of rows) console.log(`  ${label.padEnd(12)} ${value}`);
 
 if (risk?.risks?.length) {
-  console.log("Flags:");
-  for (const r of risk.risks.slice(0, 5)) console.log(" ", r.name || r.description || r);
+  console.log("\nFlags:");
+  for (const flag of risk.risks.slice(0, 8)) {
+    console.log(" ", flag.name || flag.description || JSON.stringify(flag));
+  }
 }
+
+const gate = passRiskGate(risk, { minScore, maxSnipers: 20 });
+console.log(`\nBot gate (min score ${minScore}): ${gate.ok ? "PASS" : "FAIL"} — ${gate.reason}`);
 

@@ -32,4 +32,14 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=14-solana-token-search-screener-api%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+Runs three saved screener profiles against the Search API:
+
+1. **Graduating** — Pump.fun tokens at 85–99% curve
+2. **Safer volume** — high liquidity + decentralized holders
+3. **Active** — min txn count + volume filters
+
+Copy a profile into your bot and adjust thresholds.
+
 

@@ -30,4 +30,13 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=11-solana-token-ohlcv-chart-api%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+1. Loads token metadata and current price via REST
+2. Fetches OHLCV bars for the last 7 days
+3. Prints summary stats (range, avg volume)
+4. Shows the last 5 bars and a TradingView-ready JSON snippet
+
+Tutorial: [solanatracker.io/resources/solana-token-ohlcv-chart-api](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api)
+
 

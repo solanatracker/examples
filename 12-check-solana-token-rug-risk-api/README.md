@@ -31,4 +31,13 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=12-check-solana-token-rug-risk-api%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+Builds a programmatic rug check like [Rugcheck](https://www.solanatracker.io/rugcheck):
+
+1. Fetches full token + risk payload
+2. Prints holder-risk breakdown (snipers, insiders, bundlers, dev)
+3. Lists authority / liquidity flags
+4. Runs a `passRiskGate()` you can drop into a bot
+
 

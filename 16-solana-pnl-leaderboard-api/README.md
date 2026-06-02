@@ -32,4 +32,12 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=16-solana-pnl-leaderboard-api%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+1. Top traders for the last N days (adjusted PnL mode)
+2. KOL leaderboard with identity labels
+3. Prints pagination cursor so you can fetch the next page
+
+Same data as [PnL Leaderboard](https://www.solanatracker.io/leaderboard/pnl) and [KOLScan](https://www.solanatracker.io/leaderboard/kolscan).
+
 

@@ -31,4 +31,11 @@ Open in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=1
 - [Open in StackBlitz](https://stackblitz.com/github/solanatracker/examples?file=13-pumpfun-first-buyers-sniper-api%2Fsrc%2Findex.ts)
 
 
+## What this example does
+
+1. Resolves a Pump.fun mint (from `TOKEN_MINT` or search)
+2. Lists first buyers with buy time, invested, PnL, still holding
+3. Summarizes how many are in profit vs sold
+4. Optionally streams live sniper % when `ST_DATASTREAM_KEY` and `STREAM_SNIPERS=1` are set
+
 
