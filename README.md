@@ -70,9 +70,9 @@ Raw on-chain streams decoded in your own process. Needs a gRPC endpoint and toke
 | Folder | Example | Tutorial |
 |--------|---------|----------|
 | [07-yellowstone-grpc-setup](07-yellowstone-grpc-setup) | Yellowstone gRPC setup | [Guide](https://www.solanatracker.io/resources/yellowstone-grpc-setup) |
-| [08-pumpfun-stream-new-minted-tokens](08-pumpfun-stream-new-minted-tokens) | Stream Pump.fun mints (gRPC) | [Guide](https://www.solanatracker.io/resources/pumpfun-stream-new-minted-tokens) |
-| [09-raydium-stream-and-parse-amm-transactions](09-raydium-stream-and-parse-amm-transactions) | Parse Raydium AMM swaps (gRPC) | [Guide](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
-| [10-meteora-dlmm-transaction-parsing](10-meteora-dlmm-transaction-parsing) | Parse Meteora DLMM swaps (gRPC) | [Guide](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
+| [08-pumpfun-stream-new-minted-tokens](08-pumpfun-stream-new-minted-tokens) | Stream new Pump.fun mints over gRPC | [Guide](https://www.solanatracker.io/resources/pumpfun-stream-new-minted-tokens) |
+| [09-raydium-stream-and-parse-amm-transactions](09-raydium-stream-and-parse-amm-transactions) | Parse Raydium AMM v4 swaps from gRPC | [Guide](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
+| [10-meteora-dlmm-transaction-parsing](10-meteora-dlmm-transaction-parsing) | Parse Meteora DLMM swaps from gRPC | [Guide](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
 
 ### Solana RPC
 
@@ -88,86 +88,15 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 
 | Variable | Used by | Description |
 |----------|---------|-------------|
-| `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
-| `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
 | `ST_API_KEY` | 01, 02, 03, 04, 05, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
 | `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15, 17, 18 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
 | `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
 | `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10 | `x-token` from the same dashboard |
-| `BACKFILL` | 15 | Example input; see that folder's `.env.example` |
-| `BACKFILL_LIMIT` | 05 | Example input; see that folder's `.env.example` |
-| `BACKFILL_PAGES` | 04 | Example input; see that folder's `.env.example` |
-| `BLOCK_DANGER_FACTORS` | 12 | Example input; see that folder's `.env.example` |
-| `CHART_CURRENCY` | 11 | Example input; see that folder's `.env.example` |
-| `CHART_DAYS` | 11 | Example input; see that folder's `.env.example` |
-| `CHART_INTERVAL` | 11 | Example input; see that folder's `.env.example` |
-| `COMMITMENT` | 06 | Example input; see that folder's `.env.example` |
-| `CURVE_THRESHOLD` | 05 | Example input; see that folder's `.env.example` |
-| `DATA_API_BASE_URL` | 01, 02, 03, 11, 15, 16, 20, 21 | Example input; see that folder's `.env.example` |
-| `DEDUPE_MINUTES` | 04 | Example input; see that folder's `.env.example` |
-| `ENRICH_IDENTITY` | 17 | Example input; see that folder's `.env.example` |
-| `ENRICHED` | 15 | Example input; see that folder's `.env.example` |
-| `EXCLUDE_ARBITRAGE` | 16 | Example input; see that folder's `.env.example` |
-| `FILL_GAPS` | 11 | Example input; see that folder's `.env.example` |
-| `FIRST_BUYERS_LIMIT` | 13 | Example input; see that folder's `.env.example` |
-| `HISTORY_PAGES` | 17 | Example input; see that folder's `.env.example` |
-| `HISTORY_ROWS` | 20 | Example input; see that folder's `.env.example` |
-| `INCLUDE_CHILD_MARKETS` | 19 | Example input; see that folder's `.env.example` |
-| `INTERVAL_MS` | 06 | Example input; see that folder's `.env.example` |
-| `LEADERBOARD_DAYS` | 16 | Example input; see that folder's `.env.example` |
-| `LEADERBOARD_SORT` | 16 | Example input; see that folder's `.env.example` |
-| `LIGHTHOUSE_WINDOW` | 19 | Example input; see that folder's `.env.example` |
-| `LIMIT` | 16, 21 | Example input; see that folder's `.env.example` |
-| `MARKET_CAP` | 11 | Example input; see that folder's `.env.example` |
-| `MARKETS` | 14 | Example input; see that folder's `.env.example` |
-| `MAX_AGE_HOURS` | 14 | Example input; see that folder's `.env.example` |
-| `MAX_INSIDER_PCT` | 12 | Example input; see that folder's `.env.example` |
-| `MAX_PAGES` | 14, 18 | Example input; see that folder's `.env.example` |
-| `MAX_RISK_SCORE` | 12, 14 | Example input; see that folder's `.env.example` |
-| `MAX_SINGLE_TOKEN_PCT` | 16 | Example input; see that folder's `.env.example` |
-| `MAX_SNIPER_PCT` | 12 | Example input; see that folder's `.env.example` |
-| `MIN_DAYS` | 16 | Example input; see that folder's `.env.example` |
-| `MIN_LIQUIDITY_USD` | 04, 14 | Example input; see that folder's `.env.example` |
-| `MIN_TRADES` | 16 | Example input; see that folder's `.env.example` |
-| `MIN_USD` | 15 | Example input; see that folder's `.env.example` |
-| `MIN_VALUE_USD` | 03 | Example input; see that folder's `.env.example` |
-| `MIN_VOLUME_24H_USD` | 14 | Example input; see that folder's `.env.example` |
-| `PAGE_LIMIT` | 17, 18 | Example input; see that folder's `.env.example` |
-| `PAGE_SIZE` | 14 | Example input; see that folder's `.env.example` |
-| `PAGES` | 16 | Example input; see that folder's `.env.example` |
-| `PLATFORM` | 16 | Example input; see that folder's `.env.example` |
-| `PNL_CURRENCY` | 20 | Example input; see that folder's `.env.example` |
-| `PNL_MODE` | 16, 20 | Example input; see that folder's `.env.example` |
-| `PNL_PERIOD` | 20 | Example input; see that folder's `.env.example` |
-| `PNL_QUEUE_MAX_WAIT_SEC` | 20 | Example input; see that folder's `.env.example` |
-| `POOL_ADDRESS` | 02, 11, 15, 17 | Example input; see that folder's `.env.example` |
-| `PRINT_INTERVAL_MS` | 02 | Example input; see that folder's `.env.example` |
-| `PROVISIONAL_TTL_MINUTES` | 17 | Example input; see that folder's `.env.example` |
-| `QUICK_FLIP_SECONDS` | 13 | Example input; see that folder's `.env.example` |
-| `RECONCILE_INTERVAL_SECONDS` | 17 | Example input; see that folder's `.env.example` |
-| `REDUCE_SPAM` | 05 | Example input; see that folder's `.env.example` |
-| `SAMPLES` | 06 | Example input; see that folder's `.env.example` |
-| `SEARCH_QUERY` | 14 | Example input; see that folder's `.env.example` |
-| `SHOW_LAST` | 11 | Example input; see that folder's `.env.example` |
-| `SHOW_ROWS` | 21 | Example input; see that folder's `.env.example` |
-| `SIDE` | 18 | Example input; see that folder's `.env.example` |
-| `SNAPSHOT_REFRESH_SEC` | 03 | Example input; see that folder's `.env.example` |
-| `SORT` | 18 | Example input; see that folder's `.env.example` |
-| `SORT_BY` | 14 | Example input; see that folder's `.env.example` |
-| `SORT_METRIC` | 19 | Example input; see that folder's `.env.example` |
-| `SORT_ORDER` | 14 | Example input; see that folder's `.env.example` |
-| `STALE_AFTER_SECONDS` | 02 | Example input; see that folder's `.env.example` |
-| `STATS_SECONDS` | 15 | Example input; see that folder's `.env.example` |
-| `STATUS` | 18 | Example input; see that folder's `.env.example` |
-| `TIMEOUT_MS` | 06 | Example input; see that folder's `.env.example` |
-| `TOKEN_MINT` | 01, 02, 11, 12, 13, 15, 17, 18, 21 | Example input; see that folder's `.env.example` |
-| `TOP_N` | 19 | Example input; see that folder's `.env.example` |
-| `WALLET_ADDRESS` | 03, 18, 20 | Example input; see that folder's `.env.example` |
-| `WATCH_RISK` | 13 | Example input; see that folder's `.env.example` |
-| `WATCH_SECONDS` | 19 | Example input; see that folder's `.env.example` |
-| `WATCH_TTL_HOURS` | 05 | Example input; see that folder's `.env.example` |
-| `WATCHLIST` | 01 | Example input; see that folder's `.env.example` |
-| `WINDOW_CANDLES` | 11 | Example input; see that folder's `.env.example` |
+| `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
+| `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
+| `DATA_API_BASE_URL` | 01, 02, 03, 11, 15, 16, 20, 21 | Optional Data API base URL override; leave unset to use the default |
+
+Other variables (token mints, limits, thresholds) are optional per-example inputs with defaults; each folder's README and `.env.example` describe them.
 
 ## Shared helpers
 

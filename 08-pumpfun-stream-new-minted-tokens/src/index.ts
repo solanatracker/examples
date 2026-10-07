@@ -1,95 +1,78 @@
-import * as Yellowstone from "@triton-one/yellowstone-grpc";
+import type { SubscribeUpdate } from "@triton-one/yellowstone-grpc";
+import { short, time } from "./format.js";
+import { emptyRequest, runStream } from "./grpc.js";
+import { cleanText, parseCreates, PUMP_MINT_AUTHORITY, PUMP_PROGRAM, type NewMint } from "./parse.js";
+import { onShutdown } from "./shutdown.js";
+import { columns, commitmentFromEnv } from "./stream-options.js";
 
-const Client =
-  typeof Yellowstone.default === "function"
-    ? Yellowstone.default
-    : (Yellowstone.default as { default: typeof Yellowstone.default }).default;
-const { CommitmentLevel } = Yellowstone;
-import { BorshInstructionCoder, type Idl } from "@coral-xyz/anchor";
-import bs58 from "bs58";
-import pumpfunIdl from "../idl/pumpfun.json" with { type: "json" };
+// Processed is the lowest-latency level; a rolled-back slot can still drop a mint you already printed.
+const commitment = commitmentFromEnv("processed");
 
-const PUMP_FUN = "6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P";
-const ixCoder = new BorshInstructionCoder(pumpfunIdl as Idl);
-const createIx = pumpfunIdl.instructions.find((i) => i.name === "create");
-const createV2Ix = pumpfunIdl.instructions.find((i) => i.name === "create_v2");
-if (!createIx?.discriminator || !createV2Ix?.discriminator) {
-  throw new Error("create/create_v2 missing from idl/pumpfun.json");
-}
-const CREATE_DISCS = [
-  Buffer.from(createIx.discriminator),
-  Buffer.from(createV2Ix.discriminator),
-];
-
-function matchesCreateDisc(data: Buffer) {
-  return data.length >= 8 && CREATE_DISCS.some((disc) => data.subarray(0, 8).equals(disc));
-}
-
-function accountKey(keys: unknown[], index: number) {
-  const key = keys[index];
-  if (!key) return "unknown";
-  if (typeof key === "string") return key;
-  return bs58.encode(Buffer.from(key as Uint8Array));
-}
-
-const endpoint = process.env.YELLOWSTONE_GRPC_ENDPOINT!;
-const token = process.env.YELLOWSTONE_GRPC_TOKEN!;
-if (!endpoint || !token) {
-  console.error("Set YELLOWSTONE_GRPC_ENDPOINT and YELLOWSTONE_GRPC_TOKEN in .env");
-  process.exit(1);
-}
-
-const client = new Client(endpoint, token, undefined);
-await client.connect();
-console.log("Pump.fun creates");
-const stream = await client.subscribe();
-
-stream.on("data", (update) => {
-  const tx = update.transaction?.transaction;
-  const message = tx?.transaction?.message;
-  if (!message) return;
-  const keys = message.accountKeys ?? [];
-  const allIxs = [
-    ...(message.instructions ?? []),
-    ...(tx?.meta?.innerInstructions ?? []).flatMap((group) => group.instructions ?? []),
-  ];
-
-  for (const ix of allIxs) {
-    const data = Buffer.from(ix.data);
-    if (!matchesCreateDisc(data)) continue;
-
-    const decoded = ixCoder.decode(data);
-    if (decoded?.name !== "create" && decoded?.name !== "create_v2") continue;
-
-    const mint = accountKey(keys, ix.accounts?.[0] ?? 0);
-    const sig = tx?.signature;
-    console.log(
-      "New mint:",
-      decoded.data.name,
-      decoded.data.symbol,
-      mint,
-      sig ? bs58.encode(sig) : ""
-    );
-  }
-});
-
-stream.write({
-  transactions: {
-    pumpfun: {
-      accountInclude: [PUMP_FUN],
-      accountExclude: [],
-      accountRequired: [],
-      failed: false,
-      vote: false,
-    },
+const request = emptyRequest();
+request.commitment = commitment.level;
+request.transactions = {
+  pumpCreates: {
+    accountInclude: [PUMP_PROGRAM],
+    // Only create instructions reference the mint-authority PDA, so buys and sells never leave the server.
+    accountRequired: [PUMP_MINT_AUTHORITY],
+    accountExclude: [],
+    vote: false,
+    failed: false,
   },
-  accounts: {},
-  slots: {},
-  blocks: {},
-  blocksMeta: {},
-  entry: {},
-  accountsDataSlice: [],
-  transactionsStatus: {},
-  commitment: CommitmentLevel.PROCESSED,
-});
+};
 
+const feed = columns([
+  ["time", 8],
+  ["slot", 9],
+  ["ver", 3],
+  ["mint", 44],
+  ["symbol", 10],
+  ["name", 24],
+  ["creator", 11],
+  ["via", 11],
+]);
+
+// Reconnects and processed-level redelivery can repeat a transaction; key on signature + instruction path.
+const seen = new Set<string>();
+const remember = (key: string): boolean => {
+  if (seen.has(key)) return false;
+  seen.add(key);
+  if (seen.size > 10_000) seen.delete(seen.values().next().value as string);
+  return true;
+};
+
+let total = 0;
+
+function onUpdate(update: SubscribeUpdate): void {
+  const tx = update.transaction;
+  if (!tx?.transaction) return;
+  for (const mint of parseCreates(tx.transaction, tx.slot)) {
+    if (!remember(`${mint.signature}:${mint.path}`)) continue;
+    total++;
+    print(mint);
+  }
+}
+
+function print(m: NewMint): void {
+  feed.row([
+    time(),
+    m.slot,
+    m.variant === "create_v2" ? "v2" : "v1",
+    m.mint,
+    cleanText(m.symbol, 10),
+    cleanText(m.name, 24),
+    short(m.creator),
+    m.viaProgram ? short(m.viaProgram) : "direct",
+  ]);
+}
+
+// runStream checks YELLOWSTONE_GRPC_ENDPOINT and YELLOWSTONE_GRPC_TOKEN before anything prints.
+const stream = runStream({ request, onUpdate });
+console.log(`Streaming Pump.fun creates at ${commitment.name} commitment. Ctrl+C to stop.\n`);
+feed.header();
+
+onShutdown(async () => {
+  stream.stop();
+  await Promise.race([stream.done, new Promise((resolve) => setTimeout(resolve, 1_000))]);
+  console.log(`\nStopped after ${total} new mint(s).`);
+});

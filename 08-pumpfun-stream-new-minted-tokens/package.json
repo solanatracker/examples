@@ -1,17 +1,23 @@
 {
   "name": "example-pumpfun-stream-new-minted-tokens",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.18"
+  },
   "scripts": {
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@triton-one/yellowstone-grpc": "^5.0.8",
-    "@coral-xyz/anchor": "^0.30.1",
+    "@coral-xyz/anchor": "^0.32.1",
+    "@triton-one/yellowstone-grpc": "^8.0.0",
     "bs58": "^6.0.0"
   },
   "devDependencies": {
-    "tsx": "^4.19.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^7.0.2"
   }
 }
