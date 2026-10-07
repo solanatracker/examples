@@ -1,15 +1,19 @@
 {
   "name": "example-reduce-solana-rpc-latency",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.18"
+  },
   "scripts": {
-    "start": "tsx src/index.ts"
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
-    "@solana/web3.js": "^1.98.4"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "tsx": "^4.19.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^7.0.2"
   }
 }

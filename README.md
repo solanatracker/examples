@@ -1,55 +1,121 @@
 # Solana Tracker Examples
 
-Runnable code for every guide at [solanatracker.io/resources](https://www.solanatracker.io/resources).
-
-All examples live in one repository: [github.com/solanatracker/examples](https://github.com/solanatracker/examples)
-
-| Folder | Example | Tutorial |
-|--------|---------|----------|
-| 01-get-solana-token-price-api | [Get Solana token prices (REST)](https://github.com/solanatracker/examples/tree/main/01-get-solana-token-price-api) | [Tutorial](https://www.solanatracker.io/resources/get-solana-token-price-api) |
-| 02-realtime-solana-price-websocket | [Stream live Solana prices (WebSocket)](https://github.com/solanatracker/examples/tree/main/02-realtime-solana-price-websocket) | [Tutorial](https://www.solanatracker.io/resources/realtime-solana-price-websocket) |
-| 03-solana-wallet-portfolio-api | [Wallet portfolio and PnL v2](https://github.com/solanatracker/examples/tree/main/03-solana-wallet-portfolio-api) | [Tutorial](https://www.solanatracker.io/resources/solana-wallet-portfolio-api) |
-| 04-stream-pumpfun-launches-websocket | [Stream Pump.fun launches (WebSocket)](https://github.com/solanatracker/examples/tree/main/04-stream-pumpfun-launches-websocket) | [Tutorial](https://www.solanatracker.io/resources/stream-pumpfun-launches-websocket) |
-| 05-detect-pumpfun-graduation | [Detect Pump.fun graduations](https://github.com/solanatracker/examples/tree/main/05-detect-pumpfun-graduation) | [Tutorial](https://www.solanatracker.io/resources/detect-pumpfun-graduation) |
-| 06-reduce-solana-rpc-latency | [Reduce Solana RPC latency](https://github.com/solanatracker/examples/tree/main/06-reduce-solana-rpc-latency) | [Tutorial](https://www.solanatracker.io/resources/reduce-solana-rpc-latency) |
-| 07-yellowstone-grpc-setup | [Yellowstone gRPC setup](https://github.com/solanatracker/examples/tree/main/07-yellowstone-grpc-setup) | [Tutorial](https://www.solanatracker.io/resources/yellowstone-grpc-setup) |
-| 08-pumpfun-stream-new-minted-tokens | [Stream Pump.fun mints (gRPC)](https://github.com/solanatracker/examples/tree/main/08-pumpfun-stream-new-minted-tokens) | [Tutorial](https://www.solanatracker.io/resources/pumpfun-stream-new-minted-tokens) |
-| 09-raydium-stream-and-parse-amm-transactions | [Parse Raydium AMM swaps (gRPC)](https://github.com/solanatracker/examples/tree/main/09-raydium-stream-and-parse-amm-transactions) | [Tutorial](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
-| 10-meteora-dlmm-transaction-parsing | [Parse Meteora DLMM swaps (gRPC)](https://github.com/solanatracker/examples/tree/main/10-meteora-dlmm-transaction-parsing) | [Tutorial](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
-| 11-solana-token-ohlcv-chart-api | [OHLCV candlestick chart data](https://github.com/solanatracker/examples/tree/main/11-solana-token-ohlcv-chart-api) | [Tutorial](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
-| 12-check-solana-token-rug-risk-api | [Token rug check and risk score](https://github.com/solanatracker/examples/tree/main/12-check-solana-token-rug-risk-api) | [Tutorial](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
-| 13-pumpfun-first-buyers-sniper-api | [Pump.fun first buyers and snipers](https://github.com/solanatracker/examples/tree/main/13-pumpfun-first-buyers-sniper-api) | [Tutorial](https://www.solanatracker.io/resources/pumpfun-first-buyers-sniper-api) |
-| 14-solana-token-search-screener-api | [Token screener with Search API](https://github.com/solanatracker/examples/tree/main/14-solana-token-search-screener-api) | [Tutorial](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
-| 15-stream-solana-trades-websocket | [Live token trades (WebSocket)](https://github.com/solanatracker/examples/tree/main/15-stream-solana-trades-websocket) | [Tutorial](https://www.solanatracker.io/resources/stream-solana-trades-websocket) |
-| 16-solana-pnl-leaderboard-api | [PnL v2 trader leaderboard](https://github.com/solanatracker/examples/tree/main/16-solana-pnl-leaderboard-api) | [Tutorial](https://www.solanatracker.io/resources/solana-pnl-leaderboard-api) |
+Runnable TypeScript projects for the guides at [solanatracker.io/resources](https://www.solanatracker.io/resources). Each folder is a standalone Node.js project with its own `package.json`, `.env.example`, and README.
 
 ## Quick start
+
+Requires Node.js 20.18 or later (24 LTS recommended).
 
 ```bash
 git clone https://github.com/solanatracker/examples.git
 cd examples/01-get-solana-token-price-api
-cp .env.example .env
+cp .env.example .env   # add ST_API_KEY
 npm install
 npm start
 ```
 
+Every example validates its environment on startup and exits with a one-line message naming any missing variable. Streaming examples reconnect with capped exponential backoff and stop cleanly on Ctrl+C. `npm run typecheck` type-checks a project without running it.
+
+## Learning path
+
+1. [01-get-solana-token-price-api](01-get-solana-token-price-api): make a REST call, handle errors and retries.
+2. [02-realtime-solana-price-websocket](02-realtime-solana-price-websocket): subscribe to a Datastream room with automatic reconnect.
+3. [04-stream-pumpfun-launches-websocket](04-stream-pumpfun-launches-websocket): consume a high-volume launch feed.
+4. [07-yellowstone-grpc-setup](07-yellowstone-grpc-setup): open a Yellowstone gRPC stream and answer pings.
+5. [09-raydium-stream-and-parse-amm-transactions](09-raydium-stream-and-parse-amm-transactions): decode program instructions from raw transactions.
+
+## Examples by product
+
+### Data API: REST
+
+Request/response data with an `ST_API_KEY`. Start here. Product: [Solana Data API](https://www.solanatracker.io/data-api).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [01-get-solana-token-price-api](01-get-solana-token-price-api) | Get Solana token prices (REST) | [Guide](https://www.solanatracker.io/resources/get-solana-token-price-api) |
+| [11-solana-token-ohlcv-chart-api](11-solana-token-ohlcv-chart-api) | OHLCV candlestick chart data | [Guide](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
+| [12-check-solana-token-rug-risk-api](12-check-solana-token-rug-risk-api) | Token rug check and risk score | [Guide](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
+| [14-solana-token-search-screener-api](14-solana-token-search-screener-api) | Token screener with Search API | [Guide](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
+| [03-solana-wallet-portfolio-api](03-solana-wallet-portfolio-api) | Wallet portfolio and PnL v2 | [Guide](https://www.solanatracker.io/resources/solana-wallet-portfolio-api) |
+| [16-solana-pnl-leaderboard-api](16-solana-pnl-leaderboard-api) | PnL v2 trader leaderboard | [Guide](https://www.solanatracker.io/resources/solana-pnl-leaderboard-api) |
+
+### Data API: Datastream (WebSocket)
+
+Live rooms over WebSocket. Needs `ST_DATASTREAM_KEY` (Premium plan or higher). Product: [Solana Data API](https://www.solanatracker.io/data-api).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [02-realtime-solana-price-websocket](02-realtime-solana-price-websocket) | Stream live Solana prices (WebSocket) | [Guide](https://www.solanatracker.io/resources/realtime-solana-price-websocket) |
+| [15-stream-solana-trades-websocket](15-stream-solana-trades-websocket) | Live token trades (WebSocket) | [Guide](https://www.solanatracker.io/resources/stream-solana-trades-websocket) |
+
+### Pump.fun API
+
+Launches, bonding curves, graduations, and early buyers. Same Data API keys. Product: [Pump.fun API](https://www.solanatracker.io/pumpfun-api).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [04-stream-pumpfun-launches-websocket](04-stream-pumpfun-launches-websocket) | Stream Pump.fun launches (WebSocket) | [Guide](https://www.solanatracker.io/resources/stream-pumpfun-launches-websocket) |
+| [05-detect-pumpfun-graduation](05-detect-pumpfun-graduation) | Detect Pump.fun graduations | [Guide](https://www.solanatracker.io/resources/detect-pumpfun-graduation) |
+| [13-pumpfun-first-buyers-sniper-api](13-pumpfun-first-buyers-sniper-api) | Pump.fun first buyers and snipers | [Guide](https://www.solanatracker.io/resources/pumpfun-first-buyers-sniper-api) |
+
+### Yellowstone gRPC
+
+Raw on-chain streams decoded in your own process. Needs a gRPC endpoint and token. Product: [Yellowstone gRPC](https://www.solanatracker.io/yellowstone-grpc).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [07-yellowstone-grpc-setup](07-yellowstone-grpc-setup) | Yellowstone gRPC setup | [Guide](https://www.solanatracker.io/resources/yellowstone-grpc-setup) |
+| [08-pumpfun-stream-new-minted-tokens](08-pumpfun-stream-new-minted-tokens) | Stream Pump.fun mints (gRPC) | [Guide](https://www.solanatracker.io/resources/pumpfun-stream-new-minted-tokens) |
+| [09-raydium-stream-and-parse-amm-transactions](09-raydium-stream-and-parse-amm-transactions) | Parse Raydium AMM swaps (gRPC) | [Guide](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
+| [10-meteora-dlmm-transaction-parsing](10-meteora-dlmm-transaction-parsing) | Parse Meteora DLMM swaps (gRPC) | [Guide](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
+
+### Solana RPC
+
+Measure and compare RPC endpoints. Product: [Solana RPC](https://www.solanatracker.io/solana-rpc).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [06-reduce-solana-rpc-latency](06-reduce-solana-rpc-latency) | Solana RPC latency benchmark | [Guide](https://www.solanatracker.io/resources/reduce-solana-rpc-latency) |
+
 ## Environment variables
 
-| Variable | Used by | Where to get it |
-|----------|---------|-----------------|
-| `ST_API_KEY` | REST Data API examples | [Data API dashboard](https://www.solanatracker.io/account/data-api) |
-| `ST_DATASTREAM_KEY` | WebSocket Datastream examples | Data API dashboard → **Datastream** section |
-| `YELLOWSTONE_GRPC_ENDPOINT` | gRPC examples | [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
-| `YELLOWSTONE_GRPC_TOKEN` | gRPC examples | Same dashboard (`x-token` value) |
-| `WALLET_ADDRESS` | Wallet portfolio example | Any Solana wallet pubkey |
-| `DEDICATED_RPC_URL` | RPC latency example | [Dedicated Nodes](https://www.solanatracker.io/dedicated-nodes) |
+Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`.
 
-## Regenerate from site content
+| Variable | Used by | Description |
+|----------|---------|-------------|
+| `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
+| `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
+| `ST_API_KEY` | 01, 03, 05, 11, 12, 13, 14, 15, 16 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
+| `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
+| `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
+| `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10 | `x-token` from the same dashboard |
+| `CHART_INTERVAL` | 11 | Example input; see that folder's `.env.example` |
+| `COMMITMENT` | 06 | Example input; see that folder's `.env.example` |
+| `INTERVAL_MS` | 06 | Example input; see that folder's `.env.example` |
+| `LEADERBOARD_DAYS` | 16 | Example input; see that folder's `.env.example` |
+| `MAX_RISK_SCORE` | 12 | Example input; see that folder's `.env.example` |
+| `SAMPLES` | 06 | Example input; see that folder's `.env.example` |
+| `STREAM_SNIPERS` | 13 | Example input; see that folder's `.env.example` |
+| `TIMEOUT_MS` | 06 | Example input; see that folder's `.env.example` |
+| `TOKEN_MINT` | 11, 12, 13, 15 | Example input; see that folder's `.env.example` |
+| `WALLET_ADDRESS` | 03 | Example input; see that folder's `.env.example` |
 
-From the main Solana Tracker repo:
+## Shared helpers
 
-```bash
-node scripts/sync-resource-examples.mjs
-npm run validate:resources
-npm run run:resources
-```
+Kit-based examples include the same small helpers in `src/`:
+
+- `env.ts`: loads `.env` and validates required variables.
+- `client.ts`: Data API client with per-request timeout and capped exponential retry that respects `Retry-After`.
+- `datastream.ts`: Datastream client with reconnect backoff and Ctrl+C shutdown.
+- `grpc.ts`: Yellowstone gRPC stream with ping replies, reconnect backoff, and full request replay.
+- `format.ts`: number, address, and table formatting.
+
+## Links
+
+- [Guides](https://www.solanatracker.io/resources)
+- [Documentation](https://docs.solanatracker.io)
+- [Solana Data API](https://www.solanatracker.io/data-api) · [Pump.fun API](https://www.solanatracker.io/pumpfun-api) · [Yellowstone gRPC](https://www.solanatracker.io/yellowstone-grpc) · [Solana RPC](https://www.solanatracker.io/solana-rpc) · [Dedicated Nodes](https://www.solanatracker.io/dedicated-nodes) · [Raptor](https://www.solanatracker.io/raptor)
+
+## Contributing
+
+These folders are generated from the Solana Tracker site repository (`scripts/sync-resource-examples.mjs`). Direct edits here are overwritten on the next sync.
