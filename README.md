@@ -34,8 +34,9 @@ Request/response data with an `ST_API_KEY`. Start here. Product: [Solana Data AP
 |--------|---------|----------|
 | [01-get-solana-token-price-api](01-get-solana-token-price-api) | Solana token prices per pool and in batches | [Guide](https://www.solanatracker.io/resources/get-solana-token-price-api) |
 | [11-solana-token-ohlcv-chart-api](11-solana-token-ohlcv-chart-api) | Solana OHLCV candles with gap handling | [Guide](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
-| [12-check-solana-token-rug-risk-api](12-check-solana-token-rug-risk-api) | Token rug check and risk score | [Guide](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
-| [14-solana-token-search-screener-api](14-solana-token-search-screener-api) | Token screener with Search API | [Guide](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
+| [12-check-solana-token-rug-risk-api](12-check-solana-token-rug-risk-api) | Solana rug check risk gate | [Guide](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
+| [14-solana-token-search-screener-api](14-solana-token-search-screener-api) | Solana token screener | [Guide](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
+| [19-solana-lighthouse-market-activity-api](19-solana-lighthouse-market-activity-api) | Solana market activity leaderboard | [Guide](https://www.solanatracker.io/resources/solana-lighthouse-market-activity-api) |
 | [03-solana-wallet-portfolio-api](03-solana-wallet-portfolio-api) | Wallet portfolio and PnL v2 | [Guide](https://www.solanatracker.io/resources/solana-wallet-portfolio-api) |
 | [16-solana-pnl-leaderboard-api](16-solana-pnl-leaderboard-api) | PnL v2 trader leaderboard | [Guide](https://www.solanatracker.io/resources/solana-pnl-leaderboard-api) |
 
@@ -87,13 +88,14 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 |----------|---------|-------------|
 | `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
 | `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
-| `ST_API_KEY` | 01, 02, 03, 04, 05, 11, 12, 13, 14, 15, 16, 17, 18 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
+| `ST_API_KEY` | 01, 02, 03, 04, 05, 11, 12, 13, 14, 15, 16, 17, 18, 19 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
 | `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15, 17, 18 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
 | `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
 | `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10 | `x-token` from the same dashboard |
 | `BACKFILL` | 15 | Example input; see that folder's `.env.example` |
 | `BACKFILL_LIMIT` | 05 | Example input; see that folder's `.env.example` |
 | `BACKFILL_PAGES` | 04 | Example input; see that folder's `.env.example` |
+| `BLOCK_DANGER_FACTORS` | 12 | Example input; see that folder's `.env.example` |
 | `CHART_CURRENCY` | 11 | Example input; see that folder's `.env.example` |
 | `CHART_DAYS` | 11 | Example input; see that folder's `.env.example` |
 | `CHART_INTERVAL` | 11 | Example input; see that folder's `.env.example` |
@@ -106,14 +108,22 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 | `FILL_GAPS` | 11 | Example input; see that folder's `.env.example` |
 | `FIRST_BUYERS_LIMIT` | 13 | Example input; see that folder's `.env.example` |
 | `HISTORY_PAGES` | 17 | Example input; see that folder's `.env.example` |
+| `INCLUDE_CHILD_MARKETS` | 19 | Example input; see that folder's `.env.example` |
 | `INTERVAL_MS` | 06 | Example input; see that folder's `.env.example` |
 | `LEADERBOARD_DAYS` | 16 | Example input; see that folder's `.env.example` |
+| `LIGHTHOUSE_WINDOW` | 19 | Example input; see that folder's `.env.example` |
 | `MARKET_CAP` | 11 | Example input; see that folder's `.env.example` |
-| `MAX_PAGES` | 18 | Example input; see that folder's `.env.example` |
-| `MAX_RISK_SCORE` | 12 | Example input; see that folder's `.env.example` |
-| `MIN_LIQUIDITY_USD` | 04 | Example input; see that folder's `.env.example` |
+| `MARKETS` | 14 | Example input; see that folder's `.env.example` |
+| `MAX_AGE_HOURS` | 14 | Example input; see that folder's `.env.example` |
+| `MAX_INSIDER_PCT` | 12 | Example input; see that folder's `.env.example` |
+| `MAX_PAGES` | 14, 18 | Example input; see that folder's `.env.example` |
+| `MAX_RISK_SCORE` | 12, 14 | Example input; see that folder's `.env.example` |
+| `MAX_SNIPER_PCT` | 12 | Example input; see that folder's `.env.example` |
+| `MIN_LIQUIDITY_USD` | 04, 14 | Example input; see that folder's `.env.example` |
 | `MIN_USD` | 15 | Example input; see that folder's `.env.example` |
+| `MIN_VOLUME_24H_USD` | 14 | Example input; see that folder's `.env.example` |
 | `PAGE_LIMIT` | 17, 18 | Example input; see that folder's `.env.example` |
+| `PAGE_SIZE` | 14 | Example input; see that folder's `.env.example` |
 | `POOL_ADDRESS` | 02, 11, 15, 17 | Example input; see that folder's `.env.example` |
 | `PRINT_INTERVAL_MS` | 02 | Example input; see that folder's `.env.example` |
 | `PROVISIONAL_TTL_MINUTES` | 17 | Example input; see that folder's `.env.example` |
@@ -121,16 +131,22 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 | `RECONCILE_INTERVAL_SECONDS` | 17 | Example input; see that folder's `.env.example` |
 | `REDUCE_SPAM` | 05 | Example input; see that folder's `.env.example` |
 | `SAMPLES` | 06 | Example input; see that folder's `.env.example` |
+| `SEARCH_QUERY` | 14 | Example input; see that folder's `.env.example` |
 | `SHOW_LAST` | 11 | Example input; see that folder's `.env.example` |
 | `SIDE` | 18 | Example input; see that folder's `.env.example` |
 | `SORT` | 18 | Example input; see that folder's `.env.example` |
+| `SORT_BY` | 14 | Example input; see that folder's `.env.example` |
+| `SORT_METRIC` | 19 | Example input; see that folder's `.env.example` |
+| `SORT_ORDER` | 14 | Example input; see that folder's `.env.example` |
 | `STALE_AFTER_SECONDS` | 02 | Example input; see that folder's `.env.example` |
 | `STATS_SECONDS` | 15 | Example input; see that folder's `.env.example` |
 | `STATUS` | 18 | Example input; see that folder's `.env.example` |
 | `TIMEOUT_MS` | 06 | Example input; see that folder's `.env.example` |
 | `TOKEN_MINT` | 01, 02, 11, 12, 13, 15, 17, 18 | Example input; see that folder's `.env.example` |
+| `TOP_N` | 19 | Example input; see that folder's `.env.example` |
 | `WALLET_ADDRESS` | 03, 18 | Example input; see that folder's `.env.example` |
 | `WATCH_RISK` | 13 | Example input; see that folder's `.env.example` |
+| `WATCH_SECONDS` | 19 | Example input; see that folder's `.env.example` |
 | `WATCH_TTL_HOURS` | 05 | Example input; see that folder's `.env.example` |
 | `WATCHLIST` | 01 | Example input; see that folder's `.env.example` |
 | `WINDOW_CANDLES` | 11 | Example input; see that folder's `.env.example` |

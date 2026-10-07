@@ -1,5 +1,5 @@
 {
-  "name": "example-solana-token-search-screener-api",
+  "name": "example-solana-lighthouse-market-activity-api",
   "version": "1.0.0",
   "private": true,
   "type": "module",
