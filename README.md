@@ -32,8 +32,8 @@ Request/response data with an `ST_API_KEY`. Start here. Product: [Solana Data AP
 
 | Folder | Example | Tutorial |
 |--------|---------|----------|
-| [01-get-solana-token-price-api](01-get-solana-token-price-api) | Get Solana token prices (REST) | [Guide](https://www.solanatracker.io/resources/get-solana-token-price-api) |
-| [11-solana-token-ohlcv-chart-api](11-solana-token-ohlcv-chart-api) | OHLCV candlestick chart data | [Guide](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
+| [01-get-solana-token-price-api](01-get-solana-token-price-api) | Solana token prices per pool and in batches | [Guide](https://www.solanatracker.io/resources/get-solana-token-price-api) |
+| [11-solana-token-ohlcv-chart-api](11-solana-token-ohlcv-chart-api) | Solana OHLCV candles with gap handling | [Guide](https://www.solanatracker.io/resources/solana-token-ohlcv-chart-api) |
 | [12-check-solana-token-rug-risk-api](12-check-solana-token-rug-risk-api) | Token rug check and risk score | [Guide](https://www.solanatracker.io/resources/check-solana-token-rug-risk-api) |
 | [14-solana-token-search-screener-api](14-solana-token-search-screener-api) | Token screener with Search API | [Guide](https://www.solanatracker.io/resources/solana-token-search-screener-api) |
 | [03-solana-wallet-portfolio-api](03-solana-wallet-portfolio-api) | Wallet portfolio and PnL v2 | [Guide](https://www.solanatracker.io/resources/solana-wallet-portfolio-api) |
@@ -45,8 +45,8 @@ Live rooms over WebSocket. Needs `ST_DATASTREAM_KEY` (Premium plan or higher). P
 
 | Folder | Example | Tutorial |
 |--------|---------|----------|
-| [02-realtime-solana-price-websocket](02-realtime-solana-price-websocket) | Stream live Solana prices (WebSocket) | [Guide](https://www.solanatracker.io/resources/realtime-solana-price-websocket) |
-| [15-stream-solana-trades-websocket](15-stream-solana-trades-websocket) | Live token trades (WebSocket) | [Guide](https://www.solanatracker.io/resources/stream-solana-trades-websocket) |
+| [02-realtime-solana-price-websocket](02-realtime-solana-price-websocket) | Stream Solana token prices over WebSocket | [Guide](https://www.solanatracker.io/resources/realtime-solana-price-websocket) |
+| [15-stream-solana-trades-websocket](15-stream-solana-trades-websocket) | Stream Solana trades over WebSocket | [Guide](https://www.solanatracker.io/resources/stream-solana-trades-websocket) |
 
 ### Pump.fun API
 
@@ -85,20 +85,35 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 |----------|---------|-------------|
 | `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
 | `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
-| `ST_API_KEY` | 01, 03, 05, 11, 12, 13, 14, 15, 16 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
+| `ST_API_KEY` | 01, 02, 03, 05, 11, 12, 13, 14, 15, 16 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
 | `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
 | `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
 | `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10 | `x-token` from the same dashboard |
+| `BACKFILL` | 15 | Example input; see that folder's `.env.example` |
+| `CHART_CURRENCY` | 11 | Example input; see that folder's `.env.example` |
+| `CHART_DAYS` | 11 | Example input; see that folder's `.env.example` |
 | `CHART_INTERVAL` | 11 | Example input; see that folder's `.env.example` |
 | `COMMITMENT` | 06 | Example input; see that folder's `.env.example` |
+| `DATA_API_BASE_URL` | 01, 02, 11, 15 | Example input; see that folder's `.env.example` |
+| `ENRICHED` | 15 | Example input; see that folder's `.env.example` |
+| `FILL_GAPS` | 11 | Example input; see that folder's `.env.example` |
 | `INTERVAL_MS` | 06 | Example input; see that folder's `.env.example` |
 | `LEADERBOARD_DAYS` | 16 | Example input; see that folder's `.env.example` |
+| `MARKET_CAP` | 11 | Example input; see that folder's `.env.example` |
 | `MAX_RISK_SCORE` | 12 | Example input; see that folder's `.env.example` |
+| `MIN_USD` | 15 | Example input; see that folder's `.env.example` |
+| `POOL_ADDRESS` | 02, 11, 15 | Example input; see that folder's `.env.example` |
+| `PRINT_INTERVAL_MS` | 02 | Example input; see that folder's `.env.example` |
 | `SAMPLES` | 06 | Example input; see that folder's `.env.example` |
+| `SHOW_LAST` | 11 | Example input; see that folder's `.env.example` |
+| `STALE_AFTER_SECONDS` | 02 | Example input; see that folder's `.env.example` |
+| `STATS_SECONDS` | 15 | Example input; see that folder's `.env.example` |
 | `STREAM_SNIPERS` | 13 | Example input; see that folder's `.env.example` |
 | `TIMEOUT_MS` | 06 | Example input; see that folder's `.env.example` |
-| `TOKEN_MINT` | 11, 12, 13, 15 | Example input; see that folder's `.env.example` |
+| `TOKEN_MINT` | 01, 02, 11, 12, 13, 15 | Example input; see that folder's `.env.example` |
 | `WALLET_ADDRESS` | 03 | Example input; see that folder's `.env.example` |
+| `WATCHLIST` | 01 | Example input; see that folder's `.env.example` |
+| `WINDOW_CANDLES` | 11 | Example input; see that folder's `.env.example` |
 
 ## Shared helpers
 
