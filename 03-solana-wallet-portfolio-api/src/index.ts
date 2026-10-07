@@ -1,72 +1,145 @@
-import { Client, Datastream } from "@solana-tracker/data-api";
+import type { WalletBalanceUpdate, WalletResponse, WalletTokenDetail } from "@solana-tracker/data-api";
+import { createDataApiClient, describeError, run, withRetry } from "./client.js";
+import { createDatastream, onShutdown } from "./datastream.js";
+import { fail, numberEnv, optionalEnv } from "./env.js";
+import { compact, compactUsd, pct, short, table, time, usd } from "./format.js";
 
-function usd(n: number | null | undefined) {
-  if (n == null || Number.isNaN(n)) return "—";
-  return `${n < 0 ? "-" : ""}$${Math.abs(n).toFixed(2)}`;
+// REST /wallet lists native SOL under this id; the Datastream balance rooms report SOL as wrapped SOL.
+const NATIVE_SOL = "So11111111111111111111111111111111111111111";
+const WRAPPED_SOL = "So11111111111111111111111111111111111111112";
+const BASE58 = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+const DEFAULT_WALLET = "FbMxP3GVq8TQ36nbYgx4NP9iygMpwAwFWJwW81ioCiSF";
+
+type Holding = {
+  mint: string;
+  symbol: string;
+  balance: number;
+  value: number;
+  /** USD per token implied by the snapshot (value / balance). The balance stream carries no prices. */
+  unitPrice: number | null;
+  change24h: number | null;
+  liquidityUsd: number | null;
+  risk: number | null;
+};
+
+function toHolding(row: WalletTokenDetail): Holding {
+  const topPool = [...(row.pools ?? [])].sort((a, b) => (b.liquidity?.usd ?? 0) - (a.liquidity?.usd ?? 0))[0];
+  return {
+    mint: row.token.mint,
+    symbol: row.token.symbol || short(row.token.mint),
+    balance: row.balance,
+    value: row.value,
+    unitPrice: row.balance > 0 ? row.value / row.balance : null,
+    change24h: row.events?.["24h"]?.priceChangePercentage ?? null,
+    liquidityUsd: topPool?.liquidity?.usd ?? null,
+    risk: typeof row.risk?.score === "number" ? row.risk.score : null,
+  };
 }
 
-const wallet = process.env.WALLET_ADDRESS;
-const datastreamKey = process.env.ST_DATASTREAM_KEY;
-if (!(process.env.ST_API_KEY || process.env.SOLANA_TRACKER_API_KEY) || !wallet) {
-  console.error("Set ST_API_KEY and WALLET_ADDRESS in .env");
-  process.exit(1);
-}
+function printSnapshot(wallet: string, snapshot: WalletResponse, minValueUsd: number): Map<string, Holding> {
+  const holdings = snapshot.tokens.map(toHolding).sort((a, b) => b.value - a.value);
+  const shown = holdings.filter((h) => h.value >= minValueUsd);
+  const dust = holdings.length - shown.length;
 
-const client = new Client({
-  apiKey: process.env.ST_API_KEY || process.env.SOLANA_TRACKER_API_KEY,
-  baseUrl: process.env.DATA_API_BASE_URL || 'https://data.solanatracker.io',
-});
-
-const portfolio = await client.getWallet(wallet);
-const holdings = [...portfolio.tokens].sort((a, b) => (b.value ?? 0) - (a.value ?? 0));
-
-console.log(`Portfolio ${usd(portfolio.total)}  (${portfolio.totalSol.toFixed(4)} SOL)`);
-console.log("Holdings:");
-for (const row of holdings.slice(0, 10)) {
-  const label = row.token.symbol || row.token.mint.slice(0, 8);
-  const market = row.pools?.[0]?.market ?? "";
-  console.log(`  ${label.padEnd(10)} ${String(row.balance).padEnd(14)} ${usd(row.value).padStart(10)}  ${market}`);
-}
-
-const overview = await client.getPnlV2WalletOverview(wallet);
-if ("queued" in overview && overview.queued) {
-  console.log("PnL: wallet queued for indexing");
-} else if ("summary" in overview) {
-  const { pnl, counts, roi, timing } = overview.summary;
-  console.log(
-    `PnL ${usd(pnl.total)} total  ${usd(pnl.realized)} realized  ${usd(pnl.unrealized)} unrealized  ROI ${roi ?? "n/a"}%`
+  console.log(`\nPortfolio for ${wallet}${snapshot.timestamp ? ` (snapshot ${snapshot.timestamp})` : ""}\n`);
+  table(
+    ["Token", "Mint", "Balance", "Value", "Share", "24h", "Liquidity", "Risk"],
+    shown.map((h) => [
+      h.symbol.slice(0, 12),
+      short(h.mint),
+      compact(h.balance),
+      usd(h.value),
+      snapshot.total > 0 ? `${((h.value / snapshot.total) * 100).toFixed(1)}%` : "n/a",
+      pct(h.change24h),
+      compactUsd(h.liquidityUsd),
+      h.risk === null ? "n/a" : String(h.risk),
+    ]),
   );
   console.log(
-    `Trades ${counts.trades} across ${counts.tokensTraded} tokens  |  win rate ${overview.analysis.winRate ?? "n/a"}%  |  holding ${overview.stats.holding} sold ${overview.stats.sold}`
+    `\nTotal ${usd(snapshot.total)} (${snapshot.totalSol.toFixed(3)} SOL) across ${holdings.length} token(s)` +
+      (dust > 0 ? `; ${dust} below ${usd(minValueUsd)} hidden` : ""),
   );
-  if (timing.avgHoldTimeSecs) {
-    console.log(`Avg hold ${Math.round(timing.avgHoldTimeSecs / 3600)}h`);
-  }
+  return new Map(holdings.map((h) => [h.mint, h]));
 }
 
-const positions = await client.getPnlV2WalletPositions(wallet, {
-  limit: 5,
-  sort: "value",
-});
-if ("queued" in positions && positions.queued) {
-  console.log("Open positions: queued for indexing");
-} else if ("positions" in positions && positions.positions.length) {
-  console.log("Open positions:");
-  for (const p of positions.positions) {
-    const label = p.meta?.symbol ?? p.token.slice(0, 8);
-    console.log(
-      `  ${label.padEnd(10)} value ${usd(p.current.value)}  cost ${usd(p.current.costBasis)}  pnl ${usd(p.pnl.total)}`
-    );
+async function main(): Promise<void> {
+  const client = createDataApiClient();
+  const wallet = optionalEnv("WALLET_ADDRESS") ?? DEFAULT_WALLET;
+  if (!BASE58.test(wallet)) fail(`WALLET_ADDRESS is not a valid base58 address: "${wallet}"`);
+  const minValueUsd = numberEnv("MIN_VALUE_USD", 1);
+  const refreshSec = numberEnv("SNAPSHOT_REFRESH_SEC", 300);
+  if (minValueUsd < 0) fail("MIN_VALUE_USD must be 0 or more");
+  if (refreshSec < 30) fail("SNAPSHOT_REFRESH_SEC must be at least 30");
+
+  const fetchSnapshot = () => withRetry("getWallet", () => client.getWallet(wallet), { timeoutMs: 20_000 });
+  let holdings = printSnapshot(wallet, await fetchSnapshot(), minValueUsd);
+
+  if (!optionalEnv("ST_DATASTREAM_KEY")) {
+    console.log("\nSet ST_DATASTREAM_KEY (Premium plan or higher) to follow balance changes live.");
+    return;
   }
+
+  // Live mode: the balance room sends the new UI amount per token. Revalue it with the snapshot price,
+  // and re-fetch the snapshot on reconnect, on unknown mints and on a timer (prices move, amounts don't tell you).
+  let refreshTimer: NodeJS.Timeout | undefined;
+  let refreshing = false;
+  const refresh = (reason: string, delayMs = 3_000) => {
+    clearTimeout(refreshTimer);
+    refreshTimer = setTimeout(async () => {
+      if (refreshing) return;
+      refreshing = true;
+      try {
+        const snapshot = await fetchSnapshot();
+        holdings = new Map(snapshot.tokens.map(toHolding).map((h) => [h.mint, h]));
+        console.log(`${time()}  snapshot refreshed (${reason}): ${usd(snapshot.total)} across ${holdings.size} token(s)`);
+      } catch (error) {
+        console.warn(`${time()}  snapshot refresh failed: ${describeError(error)}`);
+      } finally {
+        refreshing = false;
+      }
+    }, delayMs);
+  };
+
+  const estimatedTotal = () => [...holdings.values()].reduce((sum, h) => sum + h.value, 0);
+
+  const ds = createDatastream();
+  let connectedOnce = false;
+  ds.on("connected", () => {
+    if (connectedOnce) refresh("reconnected, updates may have been missed", 0);
+    connectedOnce = true;
+  });
+
+  const listener = ds.subscribe
+    .wallet(wallet)
+    .balance()
+    .on((update: WalletBalanceUpdate) => {
+      const mint = update.token === WRAPPED_SOL && !holdings.has(WRAPPED_SOL) ? NATIVE_SOL : update.token;
+      const known = holdings.get(mint);
+      if (!known) {
+        console.log(`${time()}  ${short(mint)}  new balance ${compact(update.amount)} (not in snapshot, refreshing)`);
+        refresh("new token");
+        return;
+      }
+      const before = known.balance;
+      known.balance = update.amount;
+      if (known.unitPrice !== null) known.value = update.amount * known.unitPrice;
+      const delta = update.amount - before;
+      console.log(
+        `${time()}  ${known.symbol.padEnd(10)} ${delta >= 0 ? "+" : ""}${compact(delta)} -> ${compact(update.amount)}` +
+          `  value ${known.unitPrice === null ? "n/a" : usd(known.value)}  est. total ${usd(estimatedTotal())}`,
+      );
+    });
+
+  const timer = setInterval(() => refresh("scheduled", 0), refreshSec * 1000);
+  console.log(`\nWatching ${short(wallet)} for balance changes. Ctrl+C to stop.`);
+
+  onShutdown(() => {
+    clearInterval(timer);
+    clearTimeout(refreshTimer);
+    listener.unsubscribe();
+    ds.disconnect();
+    console.log("Stopped.");
+  });
 }
 
-if (!datastreamKey) process.exit(0);
-
-const ds = new Datastream({ wsUrl: `wss://datastream.solanatracker.io/${datastreamKey}` });
-ds.on("error", (err) => console.error(err.message));
-await ds.connect();
-
-ds.subscribe.pnl.summary(wallet).on((update) => {
-  console.log("Live PnL:", usd(update.pnl?.total), "open value", usd(update.openPositions?.value));
-});
-
+run(main);
