@@ -1,16 +1,21 @@
 {
   "name": "example-pumpfun-first-buyers-sniper-api",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.18"
+  },
   "scripts": {
-    "start": "tsx --import ./src/preload.ts src/index.ts"
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@solana-tracker/data-api": "^0.3.1",
-    "ws": "^8.18.0"
+    "@solana-tracker/data-api": "^0.5.0"
   },
   "devDependencies": {
-    "tsx": "^4.19.0",
-    "typescript": "^5.4.0"
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^7.0.2"
   }
 }

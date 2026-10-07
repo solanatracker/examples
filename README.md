@@ -54,9 +54,9 @@ Launches, bonding curves, graduations, and early buyers. Same Data API keys. Pro
 
 | Folder | Example | Tutorial |
 |--------|---------|----------|
-| [04-stream-pumpfun-launches-websocket](04-stream-pumpfun-launches-websocket) | Stream Pump.fun launches (WebSocket) | [Guide](https://www.solanatracker.io/resources/stream-pumpfun-launches-websocket) |
+| [04-stream-pumpfun-launches-websocket](04-stream-pumpfun-launches-websocket) | Stream Pump.fun launches over WebSocket | [Guide](https://www.solanatracker.io/resources/stream-pumpfun-launches-websocket) |
 | [05-detect-pumpfun-graduation](05-detect-pumpfun-graduation) | Detect Pump.fun graduations | [Guide](https://www.solanatracker.io/resources/detect-pumpfun-graduation) |
-| [13-pumpfun-first-buyers-sniper-api](13-pumpfun-first-buyers-sniper-api) | Pump.fun first buyers and snipers | [Guide](https://www.solanatracker.io/resources/pumpfun-first-buyers-sniper-api) |
+| [13-pumpfun-first-buyers-sniper-api](13-pumpfun-first-buyers-sniper-api) | Pump.fun first buyers and sniper report | [Guide](https://www.solanatracker.io/resources/pumpfun-first-buyers-sniper-api) |
 
 ### Yellowstone gRPC
 
@@ -85,33 +85,42 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 |----------|---------|-------------|
 | `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
 | `SOLANA_RPC_URL` | 06 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
-| `ST_API_KEY` | 01, 02, 03, 05, 11, 12, 13, 14, 15, 16 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
+| `ST_API_KEY` | 01, 02, 03, 04, 05, 11, 12, 13, 14, 15, 16 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
 | `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
 | `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
 | `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10 | `x-token` from the same dashboard |
 | `BACKFILL` | 15 | Example input; see that folder's `.env.example` |
+| `BACKFILL_LIMIT` | 05 | Example input; see that folder's `.env.example` |
+| `BACKFILL_PAGES` | 04 | Example input; see that folder's `.env.example` |
 | `CHART_CURRENCY` | 11 | Example input; see that folder's `.env.example` |
 | `CHART_DAYS` | 11 | Example input; see that folder's `.env.example` |
 | `CHART_INTERVAL` | 11 | Example input; see that folder's `.env.example` |
 | `COMMITMENT` | 06 | Example input; see that folder's `.env.example` |
+| `CURVE_THRESHOLD` | 05 | Example input; see that folder's `.env.example` |
 | `DATA_API_BASE_URL` | 01, 02, 11, 15 | Example input; see that folder's `.env.example` |
+| `DEDUPE_MINUTES` | 04 | Example input; see that folder's `.env.example` |
 | `ENRICHED` | 15 | Example input; see that folder's `.env.example` |
 | `FILL_GAPS` | 11 | Example input; see that folder's `.env.example` |
+| `FIRST_BUYERS_LIMIT` | 13 | Example input; see that folder's `.env.example` |
 | `INTERVAL_MS` | 06 | Example input; see that folder's `.env.example` |
 | `LEADERBOARD_DAYS` | 16 | Example input; see that folder's `.env.example` |
 | `MARKET_CAP` | 11 | Example input; see that folder's `.env.example` |
 | `MAX_RISK_SCORE` | 12 | Example input; see that folder's `.env.example` |
+| `MIN_LIQUIDITY_USD` | 04 | Example input; see that folder's `.env.example` |
 | `MIN_USD` | 15 | Example input; see that folder's `.env.example` |
 | `POOL_ADDRESS` | 02, 11, 15 | Example input; see that folder's `.env.example` |
 | `PRINT_INTERVAL_MS` | 02 | Example input; see that folder's `.env.example` |
+| `QUICK_FLIP_SECONDS` | 13 | Example input; see that folder's `.env.example` |
+| `REDUCE_SPAM` | 05 | Example input; see that folder's `.env.example` |
 | `SAMPLES` | 06 | Example input; see that folder's `.env.example` |
 | `SHOW_LAST` | 11 | Example input; see that folder's `.env.example` |
 | `STALE_AFTER_SECONDS` | 02 | Example input; see that folder's `.env.example` |
 | `STATS_SECONDS` | 15 | Example input; see that folder's `.env.example` |
-| `STREAM_SNIPERS` | 13 | Example input; see that folder's `.env.example` |
 | `TIMEOUT_MS` | 06 | Example input; see that folder's `.env.example` |
 | `TOKEN_MINT` | 01, 02, 11, 12, 13, 15 | Example input; see that folder's `.env.example` |
 | `WALLET_ADDRESS` | 03 | Example input; see that folder's `.env.example` |
+| `WATCH_RISK` | 13 | Example input; see that folder's `.env.example` |
+| `WATCH_TTL_HOURS` | 05 | Example input; see that folder's `.env.example` |
 | `WATCHLIST` | 01 | Example input; see that folder's `.env.example` |
 | `WINDOW_CANDLES` | 11 | Example input; see that folder's `.env.example` |
 
