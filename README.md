@@ -83,6 +83,14 @@ Measure and compare RPC endpoints. Product: [Solana RPC](https://www.solanatrack
 |--------|---------|----------|
 | [06-reduce-solana-rpc-latency](06-reduce-solana-rpc-latency) | Solana RPC latency benchmark | [Guide](https://www.solanatracker.io/resources/reduce-solana-rpc-latency) |
 
+### Raptor Swap API
+
+Quote, build, sign, send and track swaps. No API key. Product: [Raptor Swap API](https://www.solanatracker.io/raptor).
+
+| Folder | Example | Tutorial |
+|--------|---------|----------|
+| [23-solana-swap-api-typescript](23-solana-swap-api-typescript) | Solana swap API: quote, build, sign, send and track | [Guide](https://www.solanatracker.io/resources/solana-swap-api-typescript) |
+
 ## Environment variables
 
 Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`.
