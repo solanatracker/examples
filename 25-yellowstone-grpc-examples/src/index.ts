@@ -19,7 +19,7 @@ type Recipe = { run: (args: string[]) => Promise<void>; usage: string; about: st
 const RECIPES: Record<string, Recipe> = {
   // Connection
   slots: { run: slots, usage: "[seconds]", about: "Slot progression with every commitment status" },
-  latency: { run: latency, usage: "[venue]", about: "Delay between the node seeing a transaction and you receiving it" },
+  latency: { run: latency, usage: "[venues]", about: "Delay from the server producing an update (createdAt) to you receiving it" },
   reconnect: { run: reconnect, usage: "[venues]", about: "Resume from the last seen slot after a disconnect, without duplicates" },
   filters: { run: filters, usage: "[venues]", about: "Change the subscription live: type +venue or -venue" },
   // Transactions
@@ -47,7 +47,7 @@ function help() {
   const width = Math.max(...Object.entries(RECIPES).map(([name, r]) => `${name} ${r.usage}`.length));
   console.log("Usage: npm start -- <recipe> [args]\n\nRecipes:");
   for (const [name, r] of Object.entries(RECIPES)) console.log(`  ${`${name} ${r.usage}`.padEnd(width)}  ${r.about}`);
-  console.log(`\nVenues (comma-separated, default all):\n  ${PROTOCOLS.map((p) => p.id).join(", ")}`);
+  console.log(`\nVenues (comma-separated or all; most recipes default to all):\n  ${PROTOCOLS.map((p) => p.id).join(", ")}`);
 }
 
 const [name, ...args] = process.argv.slice(2);

@@ -117,7 +117,7 @@ export type FailureKind =
   | "no-route"
   /** The quote's execution plan expired or the quote was edited: quote again, then build. */
   | "stale-quote"
-  /** 400, or a 422 body that failed validation (e.g. txVersion "v0"): fix the request. */
+  /** Any 4xx except 429, e.g. a 422 body that failed validation (txVersion "v0"): retrying the same request won't help. */
   | "bad-request"
   /** Network error, timeout, 429 or another 5xx: safe to retry with backoff. */
   | "transient";
@@ -140,7 +140,7 @@ function classify(status: number | undefined, message: string): FailureKind {
   // 500 "Execution plan expired" (seconds old) or 422 "Quote expired, modified or unavailable" (older, edited,
   // or sent to a different self-hosted instance than the one that quoted).
   if (/expired|modified or unavailable/i.test(message)) return "stale-quote";
-  if (status === 400 || status === 422) return "bad-request";
+  if (status !== undefined && status >= 400 && status < 500 && status !== 429) return "bad-request";
   return "transient";
 }
 

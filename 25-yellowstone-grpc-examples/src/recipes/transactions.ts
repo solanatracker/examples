@@ -29,8 +29,8 @@ export async function transactions(args: string[]) {
 }
 
 /**
- * `token <mint>`: every transaction that moves a token, with the net change per owner.
- * Swaps on a supported venue also print as a decoded trade line.
+ * `token <mint>`: every transaction that moves a token, with the net change per owner and the
+ * supported venues it called (or "transfer" when it called none).
  */
 export async function token(args: string[]) {
   const mint = args[0] ?? "";

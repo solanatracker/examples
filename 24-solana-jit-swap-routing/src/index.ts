@@ -66,6 +66,7 @@ const outputMint = parseMint("OUTPUT_MINT", USDC);
 const amount = parseAmount();
 const slippageBps = numberEnv("SLIPPAGE_BPS", 50);
 const jitMode = parseMode();
+const PRIORITY_LEVELS = ["min", "low", "auto", "medium", "high", "veryHigh", "turbo", "unsafeMax"];
 const priorityFee = optionalEnv("PRIORITY_FEE") ?? "medium";
 const confirmTimeoutSec = numberEnv("CONFIRM_TIMEOUT_SEC", 60);
 const execute = (optionalEnv("EXECUTE") ?? "false").toLowerCase() === "true";
@@ -74,6 +75,10 @@ const walletPublicKey = signer?.publicKey.toBase58() ?? optionalEnv("WALLET_PUBL
 
 if (inputMint === outputMint) fail("INPUT_MINT and OUTPUT_MINT must differ");
 if (!Number.isInteger(slippageBps) || slippageBps < 0 || slippageBps > 10_000) fail("SLIPPAGE_BPS must be an integer 0-10000");
+if (!PRIORITY_LEVELS.includes(priorityFee)) fail(`PRIORITY_FEE must be one of ${PRIORITY_LEVELS.join(", ")}`);
+if (signer && optionalEnv("WALLET_PUBLIC_KEY") && optionalEnv("WALLET_PUBLIC_KEY") !== walletPublicKey) {
+  fail("WALLET_PUBLIC_KEY does not match WALLET_SECRET_KEY. Set one or the other.");
+}
 if (walletPublicKey && !BASE58.test(walletPublicKey)) fail(`WALLET_PUBLIC_KEY is not a valid base58 address: "${walletPublicKey}"`);
 if (execute && !signer) fail("EXECUTE=true needs WALLET_SECRET_KEY so the transaction can be signed");
 if (execute && !optionalEnv("AMOUNT")) fail("EXECUTE=true needs an explicit AMOUNT. The 25 SOL default is for comparing routes, not for trading.");
@@ -174,6 +179,8 @@ const toInstruction = (ix: WireInstruction) =>
  * cannot be called through CPI from your own program; an ordinary swap can be followed by cleanup.
  */
 function compose(res: SwapInstructionsResponse, extra: TransactionInstruction[]): TransactionInstruction[] {
+  // This example requests neither a tip nor a token ledger; fail loudly rather than guess their placement.
+  if (res.tipInstruction || res.tokenLedgerInstruction) throw new Error("Unexpected tip or token ledger instruction in the response");
   const head = [...res.computeBudgetInstructions, ...res.setupInstructions].map(toInstruction);
   const cleanup = res.cleanupInstruction ? [toInstruction(res.cleanupInstruction)] : [];
   if (res.topLevelOnly && cleanup.length) throw new Error("A JIT swap came with a cleanup instruction, which would break the swap-last rule");
@@ -184,8 +191,9 @@ function compose(res: SwapInstructionsResponse, extra: TransactionInstruction[])
 const compactLength = (n: number) => (n < 0x80 ? 1 : n < 0x4000 ? 2 : 3);
 
 /**
- * Wire size of a signed V0 transaction, counted field by field. web3.js serializes into a fixed
- * 1232-byte buffer and throws on anything larger, which is exactly the case worth measuring.
+ * Wire size of a signed V0 transaction, counted field by field. `serialize()` is not a size check:
+ * web3.js only throws when the message alone overflows 1232 bytes, so a transaction slightly over
+ * the packet limit serializes fine and is rejected later by the network.
  */
 function v0Size(message: MessageV0): number {
   const signers = message.header.numRequiredSignatures;
@@ -230,8 +238,9 @@ async function inspectInstructions(): Promise<void> {
   let oversized = false;
   for (const { label, res } of builds) {
     const accounts = res.swapInstruction.accounts;
+    const unique = new Set(accounts.map((a) => a.pubkey));
     const instructions = compose(res, [memo]);
-    let size = "set SOLANA_RPC_URL";
+    let size: string;
     try {
       const message = await compileV0(res, instructions);
       const bytes = v0Size(message);
@@ -242,8 +251,8 @@ async function inspectInstructions(): Promise<void> {
     }
     rows.push([
       label,
-      String(accounts.length),
-      String(accounts.filter((a) => a.isWritable).length),
+      String(unique.size),
+      String(new Set(accounts.filter((a) => a.isWritable).map((a) => a.pubkey)).size),
       String(res.addressLookupTableAddresses.length),
       String(instructions.length),
       res.topLevelOnly ? "yes" : "no",
@@ -281,7 +290,7 @@ async function compareVersions(): Promise<void> {
   table(["txVersion", "Size", "First byte", "Static keys", "Lookup tables", "Instructions", `≤ ${PACKET_LIMIT} B`], rows);
   console.log(
     "\nV0 starts with the signature count; V1 starts with its version byte and carries every account inline, so it runs past the old packet size.\n" +
-      "@solana/web3.js 1.x can read V1 but not sign it, so this example sends V0. Fetch V1 transactions over RPC with maxSupportedTransactionVersion: 1.",
+      "@solana/web3.js 1.99 can read V1 but not sign it, so this example sends V0. Fetch V1 transactions over RPC with maxSupportedTransactionVersion: 1.",
   );
 }
 
@@ -309,11 +318,13 @@ async function classifyErrors(): Promise<void> {
       rows.push([label, "200", "-", "accepted", ""]);
     } catch (error) {
       if (!(error instanceof RaptorError)) throw error;
-      rows.push([label, String(error.status ?? "-"), error.kind, advice[error.kind], error.message.replace(/^HTTP \d+: /, "").slice(0, 60)]);
+      rows.push([label, String(error.status ?? "-"), error.kind, advice[error.kind], clip(error.message.replace(/^HTTP \d+: /, ""), 48)]);
     }
   }
   table(["Case", "HTTP", "Kind", "Action", "Message"], rows);
 }
+
+const clip = (text: string, max: number) => (text.length > max ? `${text.slice(0, max - 1)}…` : text);
 
 async function trackUntilFinal(signature: string): Promise<TransactionStatus | undefined> {
   const deadline = Date.now() + confirmTimeoutSec * 1000;
@@ -331,7 +342,8 @@ async function trackUntilFinal(signature: string): Promise<TransactionStatus | u
     }
     await sleep(1_000);
   }
-  return last;
+  // Still pending at the deadline is not an outcome; the caller reports it as unknown.
+  return last && FINAL_STATUSES.has(last.status) ? last : undefined;
 }
 
 // 5. Optional: swap for real with the chosen mode and compare what landed with what was quoted.
@@ -344,12 +356,19 @@ async function executeSwap(wallet: Keypair): Promise<void> {
 
   const tx = VersionedTransaction.deserialize(Buffer.from(result.swapTransaction, "base64"));
   tx.sign([wallet]);
-  const sent = await raptor.send(Buffer.from(tx.serialize()).toString("base64"));
-  console.log(`Sent ${sent.signature}\nhttps://solscan.io/tx/${sent.signature}`);
+  // The signature is known before sending, so a timeout on /send never loses track of the transaction.
+  const signature = bs58.encode(tx.signatures[0]!);
+  console.log(`Sending ${signature}\nhttps://solscan.io/tx/${signature}`);
+  try {
+    const sent = await raptor.send(Buffer.from(tx.serialize()).toString("base64"));
+    if (!sent.success) console.log("Raptor reported the send as unsuccessful; tracking the signature anyway.");
+  } catch (error) {
+    console.log(`Send failed (${error instanceof Error ? error.message : error}). The transaction may still land; tracking ${signature}.`);
+  }
 
-  const final = await trackUntilFinal(sent.signature);
+  const final = await trackUntilFinal(signature);
   if (!final) {
-    console.log(`\nNo final status after ${confirmTimeoutSec}s. Check the signature before retrying; a retry needs a fresh quote.`);
+    console.log(`\nNo final status after ${confirmTimeoutSec}s. Check ${signature} before retrying; a retry needs a fresh quote.`);
     process.exitCode = 1;
     return;
   }

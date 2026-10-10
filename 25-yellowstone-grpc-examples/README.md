@@ -13,7 +13,7 @@ Run a recipe with `npm start -- <recipe> [args]`. `npm start` on its own lists t
 | Group | Recipe | What it streams |
 |-------|--------|-----------------|
 | Connection | `slots [seconds]` | Every slot status change, from first shred to finalized or dead; with a duration it closes cleanly |
-| | `latency [venue]` | Gap between the server producing an update (`createdAt`) and your process receiving it, as percentiles |
+| | `latency [venues]` | Gap between the server producing an update (`createdAt`) and your process receiving it, as percentiles |
 | | `reconnect [venues]` | Resumes from the last seen slot after a drop, skipping duplicates |
 | | `filters [venues]` | Changes the subscription on the live stream: type `+venue` or `-venue` |
 | Transactions | `transactions <address,...>` | Every transaction touching the given accounts |
@@ -29,9 +29,9 @@ Run a recipe with `npm start -- <recipe> [args]`. `npm start` on its own lists t
 | Accounts | `accounts <venue> [AccountType]` | Live program account state, decoded with the IDL |
 | | `curves` | Pump bonding curve progress milestones |
 | Tools | `notify [venues]` | Telegram alerts for new pools and launches |
-| | `decode <signature>` | Replays one confirmed transaction through every decoder over RPC |
+| | `decode <signature>` | Fetches one confirmed transaction over RPC and replays it through the matching decoders |
 
-Venues: `pump`, `pump-amm`, `raydium-amm-v4`, `raydium-cpmm`, `raydium-clmm`, `raydium-launchlab`, `meteora-dlmm`, `meteora-damm-v1`, `meteora-damm-v2`, `meteora-dbc`, `orca-whirlpool`, `moonshot`, `fluxbeam`. Pass a comma-separated list to narrow a recipe, for example `npm start -- trades pump-amm,raydium-cpmm`.
+Venues: `pump`, `pump-amm`, `raydium-amm-v4`, `raydium-clmm`, `raydium-cpmm`, `raydium-launchlab`, `meteora-dlmm`, `meteora-damm-v1`, `meteora-damm-v2`, `meteora-dbc`, `orca-whirlpool`, `moonshot`, `fluxbeam`. Pass a comma-separated list or `all` to a `[venues]` recipe, for example `npm start -- trades pump-amm,raydium-cpmm`. `latency`, `reconnect` and `filters` default to `pump-amm`; the others default to every venue.
 
 ## Prerequisites
 
@@ -86,7 +86,7 @@ Things to know when reading the output:
 - **Fees differ per venue.** Pump amounts exclude fees; Meteora DBC and DAMM v2 input amounts include them. Each decoder documents which convention its program uses.
 - **`label` is the program's instruction name**, so `buyExactQuoteIn` and `buy` both show up as buys with their original name kept.
 - **Processed commitment is fastest** but can include transactions on a fork that is later dropped. Use `GRPC_COMMITMENT=confirmed` when every line must be final.
-- **`reconnect` uses `fromSlot`**, which only works within the server's retention window. After a long outage, backfill over RPC instead.
+- **`reconnect` uses `fromSlot`**, which only works within the server's retention window. If the slot has aged out, it warns and resumes at the head; backfill the gap over RPC. The other recipes always resume at the head.
 - **`latency` compares the server's `createdAt` with your clock**, so both must be NTP-synced before the absolute numbers mean anything.
 - **Pool accounts update constantly.** `accounts` against a busy AMM prints hundreds of lines per second; pass an account type to narrow it.
 

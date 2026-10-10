@@ -49,16 +49,16 @@ export async function slots(args: string[]) {
 const quantile = (sorted: number[], q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
 
 /**
- * `latency [venue]`: how long updates take to reach you. Each update carries `createdAt`, the time
+ * `latency [venues]`: how long updates take to reach you. Each update carries `createdAt`, the time
  * the server produced it; the gap to local receive time is network plus queueing delay.
  * Both clocks must be NTP-synced for the absolute numbers to mean anything.
  */
 export async function latency(args: string[]) {
-  const [protocol] = selectProtocols(args[0] ?? "pump-amm");
-  if (!protocol) return;
+  const protocols = selectProtocols(args[0] ?? "pump-amm");
+  const label = protocols.map((p) => p.label).join(", ");
   let samples: number[] = [];
   const stream = runStream({
-    request: { ...emptyRequest(), commitment: commitment(), transactions: { txs: txFilter({ accountInclude: [protocol.programId] }) } },
+    request: { ...emptyRequest(), commitment: commitment(), transactions: { txs: txFilter({ accountInclude: protocols.map((p) => p.programId) }) } },
     onUpdate: (update) => {
       if (update.transaction && update.createdAt) samples.push(Date.now() - update.createdAt.getTime());
     },
@@ -66,7 +66,7 @@ export async function latency(args: string[]) {
   const timer = setInterval(() => {
     const sorted = samples.sort((a, b) => a - b);
     samples = [];
-    if (sorted.length === 0) return console.log(`${time()}  no ${protocol.label} transactions in the last 10s`);
+    if (sorted.length === 0) return console.log(`${time()}  no ${label} transactions in the last 10s`);
     console.log(
       `${time()}  ${sorted.length} tx  p50 ${quantile(sorted, 0.5)} ms  p90 ${quantile(sorted, 0.9)} ms  p99 ${quantile(sorted, 0.99)} ms  max ${sorted.at(-1)} ms`,
     );
@@ -76,19 +76,25 @@ export async function latency(args: string[]) {
     stream.stop();
     await stream.done;
   });
-  console.log(`Measuring ${protocol.label} transaction delivery; a summary prints every 10 seconds.`);
+  console.log(`Measuring ${label} transaction delivery; a summary prints every 10 seconds.`);
   await stream.done;
 }
 
+/** Resume attempts that deliver nothing before `reconnect` gives up on `fromSlot` and starts at the head. */
+const MAX_EMPTY_RESUMES = 3;
+
 /**
- * `reconnect [venue]`: resume where the stream left off. After a drop, the request is rebuilt with
+ * `reconnect [venues]`: resume where the stream left off. After a drop, the request is rebuilt with
  * `fromSlot` set to the last slot seen, so the server replays what was missed (within its retention
  * window). Replayed transactions overlap with ones already handled, so signatures are de-duplicated.
+ * If the slot has aged out of the window, the server rejects every resume; after a few attempts the
+ * recipe drops `fromSlot`, reports the gap, and continues from the head.
  */
 export async function reconnect(args: string[]) {
-  const [protocol] = selectProtocols(args[0] ?? "pump-amm");
-  if (!protocol) return;
+  const protocols = selectProtocols(args[0] ?? "pump-amm");
+  const label = protocols.map((p) => p.label).join(", ");
   let lastSlot: bigint | undefined;
+  let emptyResumes = 0;
   const seen = new Set<string>();
   const remember = (signature: string) => {
     seen.add(signature);
@@ -97,31 +103,39 @@ export async function reconnect(args: string[]) {
   };
 
   const stream = runStream({
-    request: (isReconnect) => ({
-      ...emptyRequest(),
-      commitment: commitment(),
-      transactions: { txs: txFilter({ accountInclude: [protocol.programId] }) },
-      ...(isReconnect && lastSlot !== undefined ? { fromSlot: lastSlot.toString() } : {}),
-    }),
+    request: (isReconnect) => {
+      if (isReconnect && lastSlot !== undefined && ++emptyResumes > MAX_EMPTY_RESUMES) {
+        console.warn(`[grpc] slot ${lastSlot} is no longer replayable; resuming at the head. Backfill the gap over RPC.`);
+        lastSlot = undefined;
+        emptyResumes = 0;
+      }
+      return {
+        ...emptyRequest(),
+        commitment: commitment(),
+        transactions: { txs: txFilter({ accountInclude: protocols.map((p) => p.programId) }) },
+        ...(isReconnect && lastSlot !== undefined ? { fromSlot: lastSlot.toString() } : {}),
+      };
+    },
     onConnect: (isReconnect) => {
-      if (isReconnect) console.log(`[grpc] resubscribed from slot ${lastSlot ?? "head"}`);
+      if (isReconnect) console.log(`[grpc] resubscribed, replaying from slot ${lastSlot ?? "head"}`);
     },
     onUpdate: (update) => {
       const t = update.transaction;
       if (!t?.transaction) return;
+      emptyResumes = 0;
       const tx = parseTx(t.transaction, t.slot);
       const slot = BigInt(t.slot);
       if (lastSlot === undefined || slot > lastSlot) lastSlot = slot;
       if (seen.has(tx.signature)) return;
       remember(tx.signature);
-      for (const trade of protocol.trades(tx)) console.log(tradeLine(trade, tx));
+      for (const p of protocols) for (const trade of p.trades(tx)) console.log(tradeLine(trade, tx));
     },
   });
   onShutdown(async () => {
     stream.stop();
     await stream.done;
   });
-  console.log(`Streaming ${protocol.label} trades. Drop your network to watch the stream resume from the last slot.`);
+  console.log(`Streaming ${label} trades. Drop your network to watch the stream resume from the last slot.`);
   await stream.done;
 }
 

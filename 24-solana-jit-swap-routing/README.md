@@ -9,10 +9,10 @@ Products: [Raptor Swap API](https://www.solanatracker.io/raptor) · [Solana RPC]
 Runs one order through each part of Raptor V1 that changes how you build a swap:
 
 1. **Modes.** Quotes the same order with `jitRouting=auto`, `true` and `false` and prints expected and minimum output, route, whether a JIT route was used and round-trip time, plus the difference in basis points.
-2. **Instructions.** Calls `POST /swap-instructions` with `jitRouting: true` and `false`, compares account, writable and lookup-table counts, composes compute budget, setup, a memo and the swap (swap last, as `topLevelOnly` requires), compiles a V0 message against the returned lookup tables and measures it against the 1232-byte packet limit.
-3. **Versions.** Builds the same JIT quote with `txVersion` `V0` and `V1` and prints size, first byte, static keys and lookup tables.
+2. **Instructions.** Calls `POST /swap-instructions` with `jitRouting: true` and `false`, compares unique account, writable and lookup-table counts, composes compute budget, setup, a memo and the swap (swap last, as `topLevelOnly` requires), compiles a V0 message against the returned lookup tables and measures it against the 1232-byte packet limit.
+3. **Versions.** Builds the same JIT quote with `txVersion` `V0` and `V1` and prints size, first byte, static keys, lookup tables and instruction count.
 4. **Errors.** Triggers a zero amount, an unroutable mint, an edited quote and a lowercase `txVersion`, and shows how each response is classified: fix the request, quote again, change the order, or retry.
-5. **Execute (optional).** With `EXECUTE=true`, quotes in `JIT_MODE`, builds V0, signs, sends with `POST /send-transaction`, tracks the signature and compares the `SwapEvent` amount with the quote.
+5. **Execute (optional).** With `EXECUTE=true`, runs steps 1 to 4 first, then quotes in `JIT_MODE`, builds V0, signs, logs the signature, sends with `POST /send-transaction`, tracks the signature and compares the `SwapEvent` amount with the quote.
 
 A quote's execution plan lasts a few seconds, so every build runs straight after a fresh quote and re-quotes once if the plan expired.
 
@@ -47,8 +47,8 @@ Or open it in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?
 | `AMOUNT` | No | Input in base units. Default `25000000000` (25 SOL), large enough for routes to differ. Required with `EXECUTE`. |
 | `SLIPPAGE_BPS` | No | Integer basis points. Default 50. |
 | `JIT_MODE` | No | `auto`, `true` or `false` for the executed swap. Default `auto`. |
-| `PRIORITY_FEE` | No | Priority fee level. Default `medium`. |
-| `WALLET_PUBLIC_KEY` | No | Build for this address. Without it, builds use a throwaway address. |
+| `PRIORITY_FEE` | No | `min`, `low`, `auto`, `medium`, `high`, `veryHigh`, `turbo` or `unsafeMax`. Default `medium`. |
+| `WALLET_PUBLIC_KEY` | No | Build for this address. Without it, builds use a throwaway address. Must match the secret key if both are set. |
 | `WALLET_SECRET_KEY` | No | Base58 secret key, needed only for `EXECUTE=true`. |
 | `EXECUTE` | No | `true` signs and sends a real swap. Default `false`. |
 | `CONFIRM_TIMEOUT_SEC` | No | How long to track the signature. Default 60. |
@@ -60,18 +60,18 @@ Or open it in [StackBlitz](https://stackblitz.com/github/solanatracker/examples?
 ```
 1. Quote the same order with each jitRouting mode
 
-jitRouting  Expected out       Min out            Impact   Route     JIT route  Search  Round trip
-----------  -----------------  -----------------  -------  --------  ---------  ------  ----------
-auto        2,735.200933 USDC  2,721.524928 USDC  0.0000%  TesseraV  yes        fast    320 ms
-true        2,735.200933 USDC  2,721.524928 USDC  0.0000%  TesseraV  yes        fast    58 ms
-false       2,735.216426 USDC  2,721.540343 USDC  0.0000%  TesseraV  no         fast    142 ms
+jitRouting  Expected out      Min out            Impact   Route     JIT route  Search  Round trip
+----------  ----------------  -----------------  -------  --------  ---------  ------  ----------
+auto        2,736.35961 USDC  2,722.677811 USDC  0.0000%  TesseraV  yes        fast    265 ms
+true        2,736.35961 USDC  2,722.677811 USDC  0.0000%  TesseraV  yes        fast    121 ms
+false       2,736.35961 USDC  2,722.677811 USDC  0.0000%  TesseraV  no         fast    55 ms
 
 2. Build swap instructions for a throwaway address (inspect only)
 
 Swap   Accounts  Writable  Lookup tables  Ixs with memo  Top level only  V0 size
 -----  --------  --------  -------------  -------------  --------------  -----------------------------------
-JIT    77        44        11             9              yes             1338 B, 16 static keys, over by 106
-fixed  28        13        5              9              no              881 B, 12 static keys
+JIT    51        32        11             9              yes             1338 B, 16 static keys, over by 106
+fixed  20        10        5              9              no              881 B, 12 static keys
 
 3. Build the same JIT order as V0 and V1
 
@@ -83,14 +83,14 @@ V1         2064 B  0x81        52           0              7             no
 4. Classify Raptor errors
 
 Case                  HTTP  Kind         Action                   Message
---------------------  ----  -----------  -----------------------  ---------------------------------------------
+--------------------  ----  -----------  -----------------------  ------------------------------------------------
 Zero amount           400   bad-request  fix the request          Invalid amount: must be greater than 0
 Unlisted output mint  422   no-route     change the pair or size  Failed to get quote: No multi-hop route found
-Edited minAmountOut   422   stale-quote  quote again              quoteResponse: Quote expired, modified or ...
-Lowercase txVersion   422   bad-request  fix the request          txVersion: unknown variant `v0`, expected ...
+Edited minAmountOut   422   stale-quote  quote again              quoteResponse: Quote expired, modified or unava…
+Lowercase txVersion   422   bad-request  fix the request          txVersion: unknown variant `v0`, expected one o…
 ```
 
-Routes, sizes and the JIT difference change with every block. Quotes run one after another, so part of any gap between modes is price movement.
+Routes, sizes and the JIT difference change with every block. Identical quotes across modes are common; quotes run one after another, so when they differ, part of the gap is price movement.
 
 ## Extend it
 
