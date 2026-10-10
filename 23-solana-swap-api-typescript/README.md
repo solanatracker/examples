@@ -9,7 +9,7 @@ Products: [Raptor Swap API](https://www.solanatracker.io/raptor) · [Solana RPC]
 - Requests a routed quote from Raptor's `GET /quote` for `INPUT_MINT` → `OUTPUT_MINT` at `AMOUNT` base units and prints the expected and worst-case output, resolved slippage, price impact, value in USD and every hop of the route with its share.
 - With `WALLET_PUBLIC_KEY` set, builds the unsigned V0 transaction with `POST /swap` and prints its size, instruction count, lookup tables, priority fee and `lastValidBlockHeight` (a dry run; nothing is signed).
 - With `WALLET_SECRET_KEY` and `EXECUTE=true`, signs the transaction locally, submits it with `POST /send-transaction` (Yellowstone Jet TPU) and polls `GET /transaction/:signature` until it is `confirmed`, `failed` or `expired`.
-- Keeps amounts as `BigInt`, treats 400 (JSON) and 422 (plain text) errors differently, retries quotes and status reads with capped backoff, never retries a send, and stops cleanly on Ctrl+C.
+- Keeps amounts as `BigInt`, reads both JSON and plain-text error bodies (a 422 `No multi-hop route found` is not retried), retries quotes and status reads with capped backoff, never retries a send, and stops cleanly on Ctrl+C.
 
 ## Prerequisites
 
@@ -83,6 +83,7 @@ With `WALLET_SECRET_KEY` and `EXECUTE=true` the script continues with `Sent <sig
 - Trigger the quote from a live event such as a Pump.fun graduation; see https://www.solanatracker.io/resources/detect-pumpfun-graduation.
 - Charge a platform fee by passing `feeBps` (up to 1000) and `feeAccount` to `quote()`; the quote's `platformFee` object confirms what will be charged.
 - Replace `POST /swap` with `POST /swap-instructions` when you need to add your own instructions to the transaction; the response includes the address lookup tables to load.
+- Compare JIT and fixed routes on the same order, and handle `topLevelOnly` JIT instructions; see https://www.solanatracker.io/resources/solana-jit-swap-routing.
 - Keep a quote fresh while a user hovers a button with the `/stream` WebSocket instead of polling `/quote`.
 
 ## Links

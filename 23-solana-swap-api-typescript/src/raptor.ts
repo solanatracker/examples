@@ -1,6 +1,6 @@
 import { optionalEnv } from "./env.js";
 
-/** The /raptor product page lists this host; the docs examples use raptor-beta.solanatracker.io. Both serve the same API. */
+/** Hosted Raptor V1. The old raptor-beta host is retired; self-hosted binaries serve the same API. */
 export const DEFAULT_RAPTOR_URL = "https://raptor.solanatracker.io";
 
 export type RouteStep = {
@@ -47,6 +47,8 @@ export type QuoteParams = {
   feeBps?: number;
   feeAccount?: string;
   feeFromInput?: boolean;
+  /** Just-in-time routing. `auto` (the server default) uses it when it improves execution. */
+  jitRouting?: "auto" | boolean;
 };
 
 /** Documented levels: min, low, auto, medium, high, veryHigh, turbo, unsafeMax. Must be a string; a bare number is rejected. */
@@ -55,7 +57,8 @@ export type PriorityFee = string;
 export type SwapRequest = {
   userPublicKey: string;
   quoteResponse: QuoteResponse;
-  txVersion?: "V0" | "LEGACY";
+  /** V0 (default) or V1 work with JIT routes; LEGACY needs a quote made with jitRouting=false. */
+  txVersion?: "V0" | "LEGACY" | "V1";
   wrapUnwrapSol?: boolean;
   priorityFee?: PriorityFee;
   maxPriorityFee?: number;
@@ -109,7 +112,7 @@ export class RaptorError extends Error {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** 400 and 404 bodies are JSON ({ error, code }); 422 validation errors are plain text. Handle both. */
+/** Router errors (no route, unknown signature) are JSON ({ error, code }); a malformed query or body comes back as plain text. Handle both. */
 function errorMessage(status: number, body: string): string {
   try {
     const parsed = JSON.parse(body) as { error?: string; message?: string };
@@ -148,6 +151,7 @@ export class RaptorClient {
     if (params.feeBps !== undefined) query.set("feeBps", String(params.feeBps));
     if (params.feeAccount) query.set("feeAccount", params.feeAccount);
     if (params.feeFromInput !== undefined) query.set("feeFromInput", String(params.feeFromInput));
+    if (params.jitRouting !== undefined) query.set("jitRouting", String(params.jitRouting));
     return this.request<QuoteResponse>("GET", `/quote?${query}`, undefined, 3);
   }
 
@@ -175,7 +179,9 @@ export class RaptorClient {
         });
         const text = await response.text();
         if (!response.ok) {
-          throw new RaptorError(response.status, errorMessage(response.status, text), response.status >= 500 || response.status === 429);
+          // "Execution plan expired" is a 500 that no retry can fix: the quote must be refreshed.
+          const retryable = (response.status >= 500 || response.status === 429) && !/expired/i.test(text);
+          throw new RaptorError(response.status, errorMessage(response.status, text), retryable);
         }
         return JSON.parse(text) as T;
       } catch (error) {

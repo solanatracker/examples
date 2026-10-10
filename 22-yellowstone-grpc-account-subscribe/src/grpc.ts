@@ -20,7 +20,11 @@ export function emptyRequest(): SubscribeRequest {
 }
 
 export type StreamOptions = {
-  request: SubscribeRequest;
+  /**
+   * The subscription. Pass a function to build it fresh on every (re)connect,
+   * e.g. to resume with `fromSlot` after a drop.
+   */
+  request: SubscribeRequest | ((reconnect: boolean) => SubscribeRequest);
   onUpdate: (update: SubscribeUpdate) => void;
   /** Called after every successful (re)subscribe; use it to backfill what the stream may have missed. */
   onConnect?: (reconnect: boolean) => void;
@@ -44,6 +48,7 @@ export function runStream(options: StreamOptions): {
   const token = requireEnv("YELLOWSTONE_GRPC_TOKEN", "x-token from the same dashboard");
   const { onUpdate, onConnect, maxBackoffMs = 30_000 } = options;
   let request = options.request;
+  const build = (reconnect: boolean) => (typeof request === "function" ? request(reconnect) : request);
 
   let stopped = false;
   let current: Awaited<ReturnType<Client["subscribe"]>> | undefined;
@@ -77,7 +82,7 @@ export function runStream(options: StreamOptions): {
       stream.on("error", (err: Error) => finish(err));
       stream.on("end", () => finish(stopped ? undefined : new Error("stream ended by server")));
       stream.on("close", () => finish(stopped ? undefined : new Error("stream closed")));
-      stream.write(request, (err: Error | null | undefined) => {
+      stream.write(build(connections > 0), (err: Error | null | undefined) => {
         if (err) finish(err);
         else onSubscribed();
       });

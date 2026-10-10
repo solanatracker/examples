@@ -74,6 +74,7 @@ Raw on-chain streams decoded in your own process. Needs a gRPC endpoint and toke
 | [09-raydium-stream-and-parse-amm-transactions](09-raydium-stream-and-parse-amm-transactions) | Parse Raydium AMM v4 swaps from gRPC | [Guide](https://www.solanatracker.io/resources/raydium-stream-and-parse-amm-transactions) |
 | [10-meteora-dlmm-transaction-parsing](10-meteora-dlmm-transaction-parsing) | Parse Meteora DLMM swaps from gRPC | [Guide](https://www.solanatracker.io/resources/meteora-dlmm-transaction-parsing) |
 | [22-yellowstone-grpc-account-subscribe](22-yellowstone-grpc-account-subscribe) | Stream a wallet's SOL and token balances over gRPC | [Guide](https://www.solanatracker.io/resources/yellowstone-grpc-account-subscribe) |
+| [25-yellowstone-grpc-examples](25-yellowstone-grpc-examples) | Yellowstone gRPC cookbook: one decoder, many DeFi recipes | [Guide](https://www.solanatracker.io/resources/yellowstone-grpc-examples) |
 
 ### Solana RPC
 
@@ -90,6 +91,7 @@ Quote, build, sign, send and track swaps. No API key. Product: [Raptor Swap API]
 | Folder | Example | Tutorial |
 |--------|---------|----------|
 | [23-solana-swap-api-typescript](23-solana-swap-api-typescript) | Solana swap API: quote, build, sign, send and track | [Guide](https://www.solanatracker.io/resources/solana-swap-api-typescript) |
+| [24-solana-jit-swap-routing](24-solana-jit-swap-routing) | Raptor V1 JIT routing: modes, instructions and V1 transactions | [Guide](https://www.solanatracker.io/resources/solana-jit-swap-routing) |
 
 ## Environment variables
 
@@ -99,9 +101,9 @@ Copy `.env.example` to `.env` in the folder you are running. Never commit `.env`
 |----------|---------|-------------|
 | `ST_API_KEY` | 01, 02, 03, 04, 05, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21 | Data API key from the [Data API dashboard](https://www.solanatracker.io/account/data-api) |
 | `ST_DATASTREAM_KEY` | 02, 03, 04, 05, 13, 15, 17, 18 | Datastream key or full `wss://` URL from the Data API dashboard (Premium plan or higher) |
-| `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10, 22 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
-| `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10, 22 | `x-token` from the same dashboard |
-| `SOLANA_RPC_URL` | 06, 22 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
+| `YELLOWSTONE_GRPC_ENDPOINT` | 07, 08, 09, 10, 22, 25 | gRPC endpoint from the [Yellowstone gRPC dashboard](https://www.solanatracker.io/account/yellowstone-grpc) |
+| `YELLOWSTONE_GRPC_TOKEN` | 07, 08, 09, 10, 22, 25 | `x-token` from the same dashboard |
+| `SOLANA_RPC_URL` | 06, 22, 24, 25 | RPC URL including `?api_key=` from the [RPC dashboard](https://www.solanatracker.io/account/shared-rpc) |
 | `RPC_URLS` | 06 | Comma-separated RPC URLs to compare |
 | `DATA_API_BASE_URL` | 01, 02, 03, 11, 15, 16, 20, 21 | Optional Data API base URL override; leave unset to use the default |
 
